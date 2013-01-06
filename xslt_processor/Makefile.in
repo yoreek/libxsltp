@@ -534,8 +534,6 @@ uninstall-am: uninstall-binPROGRAMS
 	uninstall-binPROGRAMS
 
 
-#libvxpxslt_la_LIBADD = $(top_srcdir)/sys/libvxpsys.la
-
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
