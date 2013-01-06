@@ -234,18 +234,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-
-#INCLUDES=-I$(top_srcdir)/include -I$(top_srcdir)/sys -I/usr/include/libxml2
 INCLUDES = -I$(top_srcdir) -I/usr/include/libxml2
 AM_LDFLAGS = -lxslt -lexslt -lxml2 -lpthread -lssl -L/usr/local/lib
-
-#pkglib_LIBRARIES = libvxpxslt.a
-
-#LDADD =  libvxpxslt.a $(top_srcdir)/sys/libvxpsys.a
-
-#libvxpxslt_a_SOURCES = vxp_xslt.c vxp_xslt_document.c vxp_xslt_document_cache.c \
-#           vxp_xslt_stylesheet.c vxp_xslt_stylesheet_cache.c \
-#           vxp_xslt_keys.c vxp_xslt_keys_cache.c
 lib_LTLIBRARIES = libxsltp-1.0.la
 libxsltp_1_0_la_SOURCES = \
             xsltp.c                         \
@@ -580,8 +570,6 @@ uninstall-am: uninstall-libLTLIBRARIES
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am uninstall-libLTLIBRARIES
 
-#libvxpxslt_1_0_la_LIBADD = $(top_srcdir)/sys/libvxpsys.la
-#libvxpxslt_la_LDFLAGS=-shared
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

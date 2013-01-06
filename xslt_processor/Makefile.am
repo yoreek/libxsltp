@@ -6,5 +6,3 @@ bin_PROGRAMS = xslt_processor
 xsltp_SOURCES = xslt_processor.c
 
 LDADD =  $(top_srcdir)/libxsltp/libxsltp-1.0.la
-
-#libvxpxslt_la_LIBADD = $(top_srcdir)/sys/libvxpsys.la
