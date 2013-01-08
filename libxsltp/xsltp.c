@@ -135,11 +135,20 @@ xsltp_init(xsltp_t *processor)
         return FALSE;
     }
 
+    /* defaults */
+    processor->stylesheet_max_depth      = 250;
+    processor->stylesheet_caching_enable = TRUE;
+    processor->document_caching_enable   = TRUE;
+    processor->keys_caching_enable       = TRUE;
+    processor->profiler_enable           = FALSE;
+    processor->profiler_stylesheet       = NULL;
+    processor->profiler_repeat           = 1;
+
     return TRUE;
 }
 
 xsltp_t *
-xsltp_create(xsltp_bool_t stylesheet_cache_enable, xsltp_bool_t document_cache_enable)
+xsltp_create(void)
 {
     xsltp_t *processor;
 
@@ -152,8 +161,7 @@ xsltp_create(xsltp_bool_t stylesheet_cache_enable, xsltp_bool_t document_cache_e
     }
     memset(processor, 0, sizeof(xsltp_t));
 
-    processor->stylesheet_cache_enable = stylesheet_cache_enable;
-    processor->document_cache_enable   = document_cache_enable;
+    processor->id = XSLT_PROCESSOR_ID;
 
     if (! xsltp_init(processor)) {
         xsltp_destroy(processor);

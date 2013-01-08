@@ -38,12 +38,19 @@ xsltp_document_parser_loader_func(const xmlChar * URI, xmlDictPtr dict,
     /* !!! don't cache stylesheets */
     if (ctxt == NULL || type != XSLT_LOAD_DOCUMENT) {
 #ifdef WITH_DEBUG
-        printf("xsltp_document_parser_loader_func: default parser for '%s'\n", URI);
+        printf("xsltp_document_parser_loader_func: default parser for '%s'\n", uri);
 #endif
         return xsltp_document_parser_loader_func_original(URI, dict, options, ctxt, type);
     }
 
     xsltp_t *processor = ((xsltTransformContextPtr) ctxt)->_private;
+    /* !!! don't cache stylesheets */
+    if (processor->id != XSLT_PROCESSOR_ID) {
+#ifdef WITH_DEBUG
+        printf("xsltp_document_parser_loader_func: wrong processor id, using default parser for '%s'\n", uri);
+#endif
+        return xsltp_document_parser_loader_func_original(URI, dict, options, ctxt, type);
+    }
 
     document_parser = processor->document_parser;
     xsltp_document = xsltp_document_parser_cache_lookup(document_parser->cache, uri);
