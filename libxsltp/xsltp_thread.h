@@ -22,6 +22,8 @@ typedef struct {
 #define XSLTP_THREAD_EXIT   3
 #define XSLTP_THREAD_DONE   4
 
+#define XSLTP_THREAD_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER;
+
 xsltp_mutex_t *xsltp_mutex_init(void);
 void xsltp_mutex_lock(xsltp_mutex_t *mutex);
 void xsltp_mutex_unlock(xsltp_mutex_t *mutex);
