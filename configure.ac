@@ -1,4 +1,4 @@
-AC_INIT([XSLT processing library], [1.0], [yoreek@yahoo.com],
+AC_INIT([XSLT processing library], [1.1], [yoreek@yahoo.com],
         [libxsltp], [https://github.com/yoreek/libxsltp/])
 AC_PREREQ([2.59])
 AM_INIT_AUTOMAKE([1.10 -Wall no-define])

@@ -11,6 +11,8 @@
 #include <libxslt/documents.h>
 #include <libexslt/exslt.h>
 
+#define XSLT_PROCESSOR_ID (0x7755)
+
 typedef struct xsltp_stylesheet xsltp_stylesheet_t;
 struct xsltp_stylesheet {
     xsltp_list_t            list;
@@ -85,8 +87,14 @@ typedef struct {
 } xsltp_document_parser_t;
 
 struct _xsltp_t {
-    xsltp_bool_t                     stylesheet_cache_enable;
-    xsltp_bool_t                     document_cache_enable;
+    u_int32_t                        id;
+    u_int32_t                        stylesheet_max_depth;
+    xsltp_bool_t                     stylesheet_caching_enable;
+    xsltp_bool_t                     document_caching_enable;
+    xsltp_bool_t                     keys_caching_enable;
+    xsltp_bool_t                     profiler_enable;
+    char                            *profiler_stylesheet;
+    u_int8_t                         profiler_repeat;
     xsltp_stylesheet_parser_t       *stylesheet_parser;
     xsltp_document_parser_t         *document_parser;
     xsltp_keys_cache_t              *keys_cache;
@@ -98,7 +106,7 @@ typedef struct {
     xmlDocPtr                        doc;
 } xsltp_result_t;
 
-xsltp_t *xsltp_create(xsltp_bool_t stylesheet_cache_enable, xsltp_bool_t document_cache_enable);
+xsltp_t *xsltp_create(void);
 void xsltp_destroy(xsltp_t *processor);
 xsltp_result_t *xsltp_transform(xsltp_t *processor,
     char *stylesheet_uri, xmlDocPtr doc, const char **params);

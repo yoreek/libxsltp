@@ -2,6 +2,10 @@
 #include "xsltp_core.h"
 #include "xsltp.h"
 
+static xsltp_bool_t xsltp_initialized = FALSE;
+
+static xsltp_mutex_t xsltp_global_init_lock = XSLTP_THREAD_MUTEX_INITIALIZER;
+
 static void
 xsltp_backup_keys(xsltp_t *processor,
     xsltp_stylesheet_t *xsltp_stylesheet, xsltDocumentPtr *doc_list)
@@ -110,19 +114,16 @@ xsltp_transform(xsltp_t *processor,
 
     xsltFreeTransformContext(ctxt);
 
+#ifdef WITH_DEBUG
+    printf("xsltp_transform: done\n");
+#endif
+
     return result;
 }
 
 static xsltp_bool_t
 xsltp_init(xsltp_t *processor)
 {
-    xmlInitParser();
-    xmlInitThreads();
-    /*xsltSetGenericDebugFunc(stderr, NULL);*/
-    exsltRegisterAll();
-    /*xsltRegisterTestModule();*/
-    /*xsltDebugDumpExtensions(NULL);*/
-
     if ((processor->stylesheet_parser = xsltp_stylesheet_parser_create(processor)) == NULL) {
         return FALSE;
     }
@@ -135,11 +136,20 @@ xsltp_init(xsltp_t *processor)
         return FALSE;
     }
 
+    /* defaults */
+    processor->stylesheet_max_depth      = 250;
+    processor->stylesheet_caching_enable = TRUE;
+    processor->document_caching_enable   = TRUE;
+    processor->keys_caching_enable       = TRUE;
+    processor->profiler_enable           = FALSE;
+    processor->profiler_stylesheet       = NULL;
+    processor->profiler_repeat           = 1;
+
     return TRUE;
 }
 
 xsltp_t *
-xsltp_create(xsltp_bool_t stylesheet_cache_enable, xsltp_bool_t document_cache_enable)
+xsltp_create(void)
 {
     xsltp_t *processor;
 
@@ -152,8 +162,7 @@ xsltp_create(xsltp_bool_t stylesheet_cache_enable, xsltp_bool_t document_cache_e
     }
     memset(processor, 0, sizeof(xsltp_t));
 
-    processor->stylesheet_cache_enable = stylesheet_cache_enable;
-    processor->document_cache_enable   = document_cache_enable;
+    processor->id = XSLT_PROCESSOR_ID;
 
     if (! xsltp_init(processor)) {
         xsltp_destroy(processor);
@@ -175,14 +184,56 @@ xsltp_destroy(xsltp_t *processor)
         xsltp_document_parser_destroy(processor->document_parser);
         xsltp_keys_cache_destroy(processor->keys_cache);
         xsltp_free(processor);
+    }
+}
 
-        xsltCleanupGlobals();
-/*        xmlCleanupParser();
-        xmlMemoryDump();*/
+void
+xsltp_global_init(void)
+{
+#ifdef WITH_DEBUG
+    printf("xsltp_global_init: init\n");
+#endif
+
+    xsltp_mutex_lock(&xsltp_global_init_lock);
+
+    if (xsltp_initialized) {
+        xsltp_mutex_unlock(&xsltp_global_init_lock);
+        return;
     }
 
-/*
+    xmlInitParser();
+    xmlInitThreads();
+    xsltInitGlobals();
+    exsltRegisterAll();
+
+    /*xsltSetGenericDebugFunc(stderr, NULL);*/
+    /*xsltRegisterTestModule();*/
+    /*xsltDebugDumpExtensions(NULL);*/
+
+    xsltp_initialized = TRUE;
+
+    xsltp_mutex_unlock(&xsltp_global_init_lock);
+}
+
+void
+xsltp_global_cleanup(void)
+{
+#ifdef WITH_DEBUG
+    printf("xsltp_global_cleanup: cleanup\n");
+#endif
+
+    xsltp_mutex_lock(&xsltp_global_init_lock);
+
+    if (!xsltp_initialized) {
+        xsltp_mutex_unlock(&xsltp_global_init_lock);
+        return;
+    }
+
+    xsltCleanupGlobals();
     xmlCleanupThreads();
     xmlCleanupParser();
-*/
+
+    xsltp_initialized = FALSE;
+
+    xsltp_mutex_unlock(&xsltp_global_init_lock);
 }

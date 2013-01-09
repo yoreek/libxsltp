@@ -18,7 +18,7 @@ int run(char *stylesheet, char *xml) {
     int             status = 0;
 
     for ( ;; ) {
-        processor = xsltp_create(1, 1);
+        processor = xsltp_create();
         if (processor == NULL) {
             printf("Can't to create processor");
             status = -1;
