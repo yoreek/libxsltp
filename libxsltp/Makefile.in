@@ -94,8 +94,8 @@ libxsltp_1_0_la_LIBADD =
 am_libxsltp_1_0_la_OBJECTS = xsltp.lo xsltp_result.lo \
 	xsltp_document_parser.lo xsltp_document_parser_cache.lo \
 	xsltp_stylesheet_parser.lo xsltp_stylesheet_parser_cache.lo \
-	xsltp_keys_cache.lo xsltp_core.lo xsltp_list.lo \
-	xsltp_string.lo xsltp_pthread_thread.lo
+	xsltp_keys_cache.lo xsltp_profiler.lo xsltp_core.lo \
+	xsltp_list.lo xsltp_string.lo xsltp_pthread_thread.lo
 libxsltp_1_0_la_OBJECTS = $(am_libxsltp_1_0_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -245,6 +245,7 @@ libxsltp_1_0_la_SOURCES = \
             xsltp_stylesheet_parser.c       \
             xsltp_stylesheet_parser_cache.c \
             xsltp_keys_cache.c              \
+            xsltp_profiler.c                \
             xsltp_core.c                    \
             xsltp_list.c                    \
             xsltp_string.c                  \
@@ -331,6 +332,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_document_parser_cache.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_keys_cache.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_list.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_profiler.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_pthread_thread.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_result.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_string.Plo@am__quote@

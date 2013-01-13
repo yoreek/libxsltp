@@ -110,6 +110,24 @@ xsltp_stylesheet_parser_parse_file(xsltp_stylesheet_parser_t *stylesheet_parser,
 {
     xsltp_stylesheet_t *xsltp_stylesheet;
 
+    if (!stylesheet_parser->processor->stylesheet_caching_enable) {
+#ifdef WITH_DEBUG
+        printf("xsltp_stylesheet_parser_parse_file: parse file %s\n", uri);
+#endif
+        xsltp_stylesheet = xsltp_stylesheet_parser_create_stylesheet(uri);
+        xsltp_stylesheet->stylesheet = xsltParseStylesheetFile((const xmlChar *) uri);
+        if (xsltp_stylesheet->stylesheet == NULL) {
+#ifdef WITH_DEBUG
+            printf("xsltp_stylesheet_parser_parse_file: stylesheet %s is not parsed\n", uri);
+#endif
+            xsltp_stylesheet_parser_destroy_stylesheet(xsltp_stylesheet);
+
+            return NULL;
+        }
+
+        return xsltp_stylesheet;
+    }
+
 #ifdef WITH_DEBUG
     printf("xsltp_stylesheet_parser_parse_file: cache lookup %s\n", uri);
 #endif

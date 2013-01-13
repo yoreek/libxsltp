@@ -11,6 +11,7 @@ libxsltp_1_0_la_SOURCES =                   \
             xsltp_stylesheet_parser.c       \
             xsltp_stylesheet_parser_cache.c \
             xsltp_keys_cache.c              \
+            xsltp_profiler.c                \
             xsltp_core.c                    \
             xsltp_list.c                    \
             xsltp_string.c                  \
