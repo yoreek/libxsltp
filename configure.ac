@@ -8,9 +8,7 @@ AC_USE_SYSTEM_EXTENSIONS
 LIBXSLT_REQUIRED_VERSION=1.1.25
 
 AC_PROG_CC
-#AC_PROG_LIBTOOL
 LT_INIT([dlopen])
-#AC_CONFIG_FILES([Makefile xslt/Makefile])
 
 AC_DEFUN([VERSION_TO_NUMBER],
 [`$1 | sed -e 's/libxml //' | awk 'BEGIN { FS = "."; } { printf "%d", ([$]1 * 1000 + [$]2) * 1000 + [$]3;}'`])
@@ -32,6 +30,56 @@ else
     AM_CXXFLAGS="$AM_CXXFLAGS -O3"
 fi
 AM_CONDITIONAL([WITH_DEBUG], [test x$debug = xtrue])
+
+##########################################################################
+# OpenSSL support
+##########################################################################
+AC_ARG_WITH(ssl,
+[  --with-ssl          add OpenSSL support [[default=no]] ])
+
+if test "$with_ssl" = ""
+then
+    with_ssl="no"
+fi
+
+OPENSSL_LIBS=""
+WITH_OPENSSL=0
+
+AC_ARG_WITH(openssl-inc,
+    AS_HELP_STRING([--with-openssl-inc=DIR], [where the OpenSSL header files are located]),
+    OPENSSL_CPPFLAGS="-I$withval"
+)
+
+AC_ARG_WITH(openssl-lib,
+    AS_HELP_STRING([--with-openssl-lib=DIR], [where the OpenSSL library files are located]),
+    OPENSSL_LDFLAGS="-L$withval"
+)
+
+SAVE_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $OPENSSL_CPPFLAGS"
+
+SAVE_LDFLAGS="$LDFLAGS"
+LDFLAGS="$LDFLAGS $OPENSSL_LDFLAGS"
+
+if test "$with_ssl" = "no" ; then
+    echo Disabling OpenSSL support
+else
+    echo Enabling OpenSSL support
+
+    AC_CHECK_HEADER(openssl/ssl.h,
+        AC_CHECK_LIB(pthread, pthread_join,[
+        OPENSSL_LIBS="-lssl"
+        AC_DEFINE([HAVE_OPENSSL], [], [Enable OpenSSL])
+        WITH_OPENSSL="1"]))
+fi
+
+AC_SUBST(WITH_OPENSSL)
+AC_SUBST(OPENSSL_CPPFLAGS)
+AC_SUBST(OPENSSL_LDFLAGS)
+AC_SUBST(OPENSSL_LIBS)
+
+LDFLAGS="$SAVE_LDFLAGS"
+CPPFLAGS="$SAVE_CPPFLAGS"
 
 ##########################################################################
 # threads support
@@ -58,6 +106,7 @@ else
             THREAD_LIBS="-lpthread"
             AC_DEFINE([HAVE_LIBPTHREAD], [], [Define if pthread library is there (-lpthread)])
             AC_DEFINE([HAVE_PTHREAD_H], [], [Define if <pthread.h> is there])
+            AC_DEFINE([HAVE_THREADS], [], [Enable threads])
             WITH_THREADS="1"]))
     fi
 fi

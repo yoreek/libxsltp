@@ -33,12 +33,14 @@ void *xsltp_malloc(size_t size);
 void xsltp_free(void *p);
 time_t xsltp_last_modify(const char *file_name);
 
+#ifdef HAVE_OPENSSL
 #include "xsltp_md5.h"
+#endif
 #include "xsltp_string.h"
 #include "xsltp_list.h"
+
+#ifdef HAVE_THREADS
 #include "xsltp_thread.h"
-/*#include <xsltp_fcgi.h>*/
-/*#include <xsltp_xml.h>*/
-/*#include <xsltp_xslt.h>*/
+#endif
 
 #endif /* _XSLTP_CORE_H_INCLUDED_ */

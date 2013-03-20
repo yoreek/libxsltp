@@ -64,7 +64,9 @@ xsltp_document_parser_loader_func(const xmlChar * URI, xmlDictPtr dict,
     xsltp_document = xsltp_document_parser_cache_lookup(document_parser->cache, uri);
 
     if (xsltp_document != NULL && xsltp_document->doc == NULL) {
+#ifdef HAVE_THREADS
         xsltp_mutex_lock(document_parser->parse_lock);
+
         if (!xsltp_document->creating) {
             xsltp_document->creating = 1;
             xsltp_mutex_unlock(document_parser->parse_lock);
@@ -91,6 +93,17 @@ xsltp_document_parser_loader_func(const xmlChar * URI, xmlDictPtr dict,
             }
             xsltp_mutex_unlock(document_parser->parse_lock);
         }
+#else
+        xsltp_document->doc = xsltp_document_parser_load_document(URI, dict, options, ctxt, type);
+        if (xsltp_document->doc == NULL) {
+#ifdef WITH_DEBUG
+            printf("xsltp_document_parser_loader_func: document %s is not parsed\n", uri);
+#endif
+            xsltp_document->error = 1;
+            xsltp_document->creating = 0;
+        }
+#endif /* HAVE_THREADS */
+
         if (xsltp_document->error)
             xsltp_document = NULL;
     }
@@ -119,12 +132,18 @@ xsltp_document_parser_create_document(char *uri)
 static
 xsltp_bool_t xsltp_document_parser_loader_init(xsltp_document_parser_t *document_parser)
 {
+#ifdef HAVE_THREADS
     xsltp_mutex_lock(document_parser->parse_lock);
+#endif
+
     if (xsltp_document_parser_loader_func_original == NULL) {
         xsltp_document_parser_loader_func_original = xsltDocDefaultLoader;
         xsltSetLoaderFunc(xsltp_document_parser_loader_func);
     }
+
+#ifdef HAVE_THREADS
     xsltp_mutex_unlock(document_parser->parse_lock);
+#endif
 
     return TRUE;
 }
@@ -136,6 +155,7 @@ xsltp_document_parser_init(xsltp_t *processor, xsltp_document_parser_t *document
 
     document_parser->processor = processor;
 
+#ifdef HAVE_THREADS
     if ((document_parser->parse_lock = xsltp_mutex_init()) == NULL) {
         return FALSE;
     }
@@ -143,6 +163,7 @@ xsltp_document_parser_init(xsltp_t *processor, xsltp_document_parser_t *document
     if ((document_parser->parse_cond = xsltp_cond_init()) == NULL) {
         return FALSE;
     }
+#endif
 
     if ((document_parser->cache = xsltp_document_parser_cache_create()) == NULL) {
         return FALSE;

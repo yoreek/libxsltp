@@ -24,6 +24,7 @@ xsltp_document_parser_check_if_modify(xsltp_document_t *xsltp_document)
 static xsltp_bool_t
 xsltp_document_parser_cache_init(xsltp_document_parser_cache_t *document_parser_cache)
 {
+#ifdef HAVE_THREADS
     if ((document_parser_cache->cache_lock = xsltp_rwlock_init()) == NULL) {
         return FALSE;
     }
@@ -31,6 +32,7 @@ xsltp_document_parser_cache_init(xsltp_document_parser_cache_t *document_parser_
     if ((document_parser_cache->create_lock = xsltp_mutex_init()) == NULL) {
         return FALSE;
     }
+#endif
 
     xsltp_list_init(&document_parser_cache->list);
 
@@ -80,13 +82,16 @@ xsltp_document_parser_cache_destroy(xsltp_document_parser_cache_t *document_pars
 #endif
 
     if (document_parser_cache != NULL) {
+#ifdef HAVE_THREADS
         xsltp_rwlock_wrlock(document_parser_cache->cache_lock);
+#endif
 
         xsltp_document_parser_cache_free(&document_parser_cache->list);
 
+#ifdef HAVE_THREADS
         xsltp_rwlock_unlock(document_parser_cache->cache_lock);
         xsltp_mutex_destroy(document_parser_cache->create_lock);
-
+#endif
 
         xsltp_free(document_parser_cache);
     }
@@ -104,8 +109,9 @@ xsltp_document_parser_cache_lookup(xsltp_document_parser_cache_t *document_parse
     printf("xsltp_document_parser_cache_lookup: lookup document %s in cache\n", uri);
 #endif
 
-    /* write lock start */
+#ifdef HAVE_THREADS
     xsltp_rwlock_wrlock(document_parser_cache->cache_lock);
+#endif
 
     for (
         el = xsltp_list_first(&document_parser_cache->list);
@@ -139,8 +145,9 @@ xsltp_document_parser_cache_lookup(xsltp_document_parser_cache_t *document_parse
         xsltp_document = xsltp_document_old;
     }
 
-    /* write lock finish */
+#ifdef HAVE_THREADS
     xsltp_rwlock_unlock(document_parser_cache->cache_lock);
+#endif
 
     return xsltp_document;
 }

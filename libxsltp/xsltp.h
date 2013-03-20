@@ -1,9 +1,6 @@
 #ifndef _XSLTP_H_INCLUDED_
 #define _XSLTP_H_INCLUDED_
 
-/*#include <libxml/globals.h>*/
-/*#include <libxml/threads.h>*/
-
 #include <libxml/parser.h>
 #include <libxml/xmlsave.h>
 #include <libxslt/xslt.h>
@@ -11,7 +8,9 @@
 #include <libxslt/documents.h>
 #include <libxslt/imports.h>
 #include <libxslt/xsltutils.h>
+#ifdef HAVE_LIBEXSLT
 #include <libexslt/exslt.h>
+#endif
 
 #define XSLTP_PROCESSOR_ID              (0x7755)
 #define XSLTP_MAX_TRANSFORMATIONS        16
@@ -66,33 +65,43 @@ typedef struct _xsltp_t xsltp_t;
 typedef struct xsltp_profiler xsltp_profiler_t;
 
 typedef struct {
+#ifdef HAVE_THREADS
     xsltp_rwlock_t                  *cache_lock;
+#endif
     xsltp_list_t                     list;
     xsltp_t                         *processor;
 } xsltp_keys_cache_t;
 
 typedef struct {
+#ifdef HAVE_THREADS
     xsltp_rwlock_t                  *cache_lock;
     xsltp_mutex_t                   *create_lock;
+#endif
     xsltp_list_t                     list;
 } xsltp_stylesheet_parser_cache_t;
 
 typedef struct {
+#ifdef HAVE_THREADS
     xsltp_mutex_t                   *parse_lock;
     xsltp_cond_t                    *parse_cond;
+#endif
     xsltp_stylesheet_parser_cache_t *stylesheet_parser_cache;
     xsltp_t                         *processor;
 } xsltp_stylesheet_parser_t;
 
 typedef struct {
+#ifdef HAVE_THREADS
     xsltp_rwlock_t                  *cache_lock;
     xsltp_mutex_t                   *create_lock;
+#endif
     xsltp_list_t                     list;
 } xsltp_document_parser_cache_t;
 
 typedef struct {
+#ifdef HAVE_THREADS
     xsltp_mutex_t                   *parse_lock;
     xsltp_cond_t                    *parse_cond;
+#endif
     xsltp_document_parser_cache_t   *cache;
     xsltp_t                         *processor;
 } xsltp_document_parser_t;

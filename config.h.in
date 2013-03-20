@@ -18,6 +18,9 @@
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
+/* Enable OpenSSL */
+#undef HAVE_OPENSSL
+
 /* Define if <pthread.h> is there */
 #undef HAVE_PTHREAD_H
 
@@ -38,6 +41,9 @@
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
+
+/* Enable threads */
+#undef HAVE_THREADS
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H

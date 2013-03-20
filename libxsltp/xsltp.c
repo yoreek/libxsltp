@@ -4,7 +4,9 @@
 
 static xsltp_bool_t xsltp_initialized = FALSE;
 
+#ifdef HAVE_THREADS
 static xsltp_mutex_t xsltp_global_init_lock = XSLTP_THREAD_MUTEX_INITIALIZER;
+#endif
 
 static void
 xsltp_backup_keys(xsltp_t *processor,
@@ -376,17 +378,23 @@ xsltp_global_init(void)
     printf("xsltp_global_init: init\n");
 #endif
 
+#ifdef HAVE_THREADS
     xsltp_mutex_lock(&xsltp_global_init_lock);
+#endif
 
     if (xsltp_initialized) {
+#ifdef HAVE_THREADS
         xsltp_mutex_unlock(&xsltp_global_init_lock);
+#endif
         return;
     }
 
     xmlInitParser();
     xmlInitThreads();
     xsltInitGlobals();
+#ifdef HAVE_LIBEXSLT
     exsltRegisterAll();
+#endif
 
     /*xsltSetGenericDebugFunc(stderr, NULL);*/
     /*xsltRegisterTestModule();*/
@@ -394,7 +402,9 @@ xsltp_global_init(void)
 
     xsltp_initialized = TRUE;
 
+#ifdef HAVE_THREADS
     xsltp_mutex_unlock(&xsltp_global_init_lock);
+#endif
 }
 
 void
@@ -404,10 +414,14 @@ xsltp_global_cleanup(void)
     printf("xsltp_global_cleanup: cleanup\n");
 #endif
 
+#ifdef HAVE_THREADS
     xsltp_mutex_lock(&xsltp_global_init_lock);
+#endif
 
     if (!xsltp_initialized) {
+#ifdef HAVE_THREADS
         xsltp_mutex_unlock(&xsltp_global_init_lock);
+#endif
         return;
     }
 
@@ -417,5 +431,7 @@ xsltp_global_cleanup(void)
 
     xsltp_initialized = FALSE;
 
+#ifdef HAVE_THREADS
     xsltp_mutex_unlock(&xsltp_global_init_lock);
+#endif
 }

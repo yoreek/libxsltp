@@ -7,6 +7,7 @@ xsltp_stylesheet_parser_init(xsltp_t *processor, xsltp_stylesheet_parser_t *styl
 {
     stylesheet_parser->processor = processor;
 
+#ifdef HAVE_THREADS
     if ((stylesheet_parser->parse_lock = xsltp_mutex_init()) == NULL) {
         return FALSE;
     }
@@ -14,6 +15,7 @@ xsltp_stylesheet_parser_init(xsltp_t *processor, xsltp_stylesheet_parser_t *styl
     if ((stylesheet_parser->parse_cond = xsltp_cond_init()) == NULL) {
         return FALSE;
     }
+#endif
 
     if ((stylesheet_parser->stylesheet_parser_cache = xsltp_stylesheet_parser_cache_create()) == NULL) {
         return FALSE;
@@ -45,8 +47,10 @@ xsltp_stylesheet_parser_destroy(xsltp_stylesheet_parser_t *stylesheet_parser)
 {
     if (stylesheet_parser != NULL) {
         xsltp_stylesheet_parser_cache_destroy(stylesheet_parser->stylesheet_parser_cache);
+#ifdef HAVE_THREADS
         xsltp_mutex_destroy(stylesheet_parser->parse_lock);
         xsltp_cond_destroy(stylesheet_parser->parse_cond);
+#endif
         xsltp_free(stylesheet_parser);
     }
 }
@@ -135,6 +139,8 @@ xsltp_stylesheet_parser_parse_file(xsltp_stylesheet_parser_t *stylesheet_parser,
     xsltp_stylesheet = xsltp_stylesheet_parser_cache_lookup(stylesheet_parser->stylesheet_parser_cache, uri);
 
     if (xsltp_stylesheet != NULL && xsltp_stylesheet->stylesheet == NULL) {
+#ifdef HAVE_THREADS
+
         xsltp_mutex_lock(stylesheet_parser->parse_lock);
         if (!xsltp_stylesheet->creating) {
             xsltp_stylesheet->creating = 1;
@@ -171,6 +177,25 @@ xsltp_stylesheet_parser_parse_file(xsltp_stylesheet_parser_t *stylesheet_parser,
             }
             xsltp_mutex_unlock(stylesheet_parser->parse_lock);
         }
+
+#else
+
+        xsltp_stylesheet->stylesheet = xsltParseStylesheetFile((const xmlChar *) uri);
+        if (xsltp_stylesheet->stylesheet == NULL) {
+#ifdef WITH_DEBUG
+            printf("xsltp_stylesheet_parser_parse_file: stylesheet %s is not parsed\n", uri);
+#endif
+            xsltp_stylesheet->error = 1;
+            xsltp_stylesheet->creating = 0;
+        }
+#ifdef WITH_DEBUG
+        else {
+            printf("xsltp_stylesheet_parser_parse_file: stylesheet %s is parsed\n", uri);
+        }
+#endif
+
+#endif /* HAVE_THREADS */
+
         if (xsltp_stylesheet->error)
             xsltp_stylesheet = NULL;
     }

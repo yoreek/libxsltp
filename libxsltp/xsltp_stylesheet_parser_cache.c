@@ -5,6 +5,7 @@
 static xsltp_bool_t
 xsltp_stylesheet_parser_cache_init(xsltp_stylesheet_parser_cache_t *stylesheet_parser_cache)
 {
+#ifdef HAVE_THREADS
     if ((stylesheet_parser_cache->cache_lock = xsltp_rwlock_init()) == NULL) {
         return FALSE;
     }
@@ -12,6 +13,7 @@ xsltp_stylesheet_parser_cache_init(xsltp_stylesheet_parser_cache_t *stylesheet_p
     if ((stylesheet_parser_cache->create_lock = xsltp_mutex_init()) == NULL) {
         return FALSE;
     }
+#endif
 
     xsltp_list_init(&stylesheet_parser_cache->list);
 
@@ -49,13 +51,16 @@ void
 xsltp_stylesheet_parser_cache_destroy(xsltp_stylesheet_parser_cache_t *stylesheet_parser_cache)
 {
     if (stylesheet_parser_cache != NULL) {
+#ifdef HAVE_THREADS
         xsltp_rwlock_wrlock(stylesheet_parser_cache->cache_lock);
+#endif
 
         xsltp_stylesheet_parser_cache_free(&stylesheet_parser_cache->list);
 
+#ifdef HAVE_THREADS
         xsltp_rwlock_unlock(stylesheet_parser_cache->cache_lock);
         xsltp_mutex_destroy(stylesheet_parser_cache->create_lock);
-
+#endif
 
         xsltp_free(stylesheet_parser_cache);
     }
@@ -73,8 +78,9 @@ xsltp_stylesheet_parser_cache_lookup(xsltp_stylesheet_parser_cache_t *stylesheet
     printf("xsltp_stylesheet_parser_cache_lookup: find %s\n", uri);
 #endif
 
-    /* write lock start */
+#ifdef HAVE_THREADS
     xsltp_rwlock_wrlock(stylesheet_parser_cache->cache_lock);
+#endif
 
     list = &stylesheet_parser_cache->list;
     for (el = xsltp_list_first(list); el != xsltp_list_end(list); el = xsltp_list_next(el)) {
@@ -105,8 +111,9 @@ xsltp_stylesheet_parser_cache_lookup(xsltp_stylesheet_parser_cache_t *stylesheet
         xsltp_stylesheet = xsltp_stylesheet_old;
     }
 
-    /* write lock finish */
+#ifdef HAVE_THREADS
     xsltp_rwlock_unlock(stylesheet_parser_cache->cache_lock);
+#endif
 
     return xsltp_stylesheet;
 }

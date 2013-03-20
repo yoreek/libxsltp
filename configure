@@ -642,6 +642,10 @@ XSLT_CONFIG
 LIBXSLT_REQUIRED_VERSION
 WITH_THREADS
 THREAD_LIBS
+OPENSSL_LIBS
+OPENSSL_LDFLAGS
+OPENSSL_CPPFLAGS
+WITH_OPENSSL
 WITH_DEBUG_FALSE
 WITH_DEBUG_TRUE
 OTOOL64
@@ -764,6 +768,9 @@ with_gnu_ld
 with_sysroot
 enable_libtool_lock
 enable_debug
+with_ssl
+with_openssl_inc
+with_openssl_lib
 with_threads
 with_libxslt_prefix
 with_libxslt_include_prefix
@@ -1416,6 +1423,9 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
+  --with-ssl          add OpenSSL support [default=no]
+  --with-openssl-inc=DIR  where the OpenSSL header files are located
+  --with-openssl-lib=DIR  where the OpenSSL library files are located
   --with-threads          add multithread support [default=no]
   --with-libxslt-prefix=PFX       Specify location of libxslt config
   --with-libxslt-include-prefix=PFX   Specify location of libxslt headers
@@ -4824,7 +4834,6 @@ else
 fi
 
 
-#AC_PROG_LIBTOOL
 case `pwd` in
   *\ * | *\	*)
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Libtool does not cope well with whitespace in \`pwd\`" >&5
@@ -11967,7 +11976,6 @@ CC="$lt_save_CC"
 # Only expand once:
 
 
-#AC_CONFIG_FILES([Makefile xslt/Makefile])
 
 
 
@@ -12000,6 +12008,111 @@ else
   WITH_DEBUG_FALSE=
 fi
 
+
+##########################################################################
+# OpenSSL support
+##########################################################################
+
+# Check whether --with-ssl was given.
+if test "${with_ssl+set}" = set; then :
+  withval=$with_ssl;
+fi
+
+
+if test "$with_ssl" = ""
+then
+    with_ssl="no"
+fi
+
+OPENSSL_LIBS=""
+WITH_OPENSSL=0
+
+
+# Check whether --with-openssl-inc was given.
+if test "${with_openssl_inc+set}" = set; then :
+  withval=$with_openssl_inc; OPENSSL_CPPFLAGS="-I$withval"
+
+fi
+
+
+
+# Check whether --with-openssl-lib was given.
+if test "${with_openssl_lib+set}" = set; then :
+  withval=$with_openssl_lib; OPENSSL_LDFLAGS="-L$withval"
+
+fi
+
+
+SAVE_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $OPENSSL_CPPFLAGS"
+
+SAVE_LDFLAGS="$LDFLAGS"
+LDFLAGS="$LDFLAGS $OPENSSL_LDFLAGS"
+
+if test "$with_ssl" = "no" ; then
+    echo Disabling OpenSSL support
+else
+    echo Enabling OpenSSL support
+
+    ac_fn_c_check_header_mongrel "$LINENO" "openssl/ssl.h" "ac_cv_header_openssl_ssl_h" "$ac_includes_default"
+if test "x$ac_cv_header_openssl_ssl_h" = xyes; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_join in -lpthread" >&5
+$as_echo_n "checking for pthread_join in -lpthread... " >&6; }
+if ${ac_cv_lib_pthread_pthread_join+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpthread  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pthread_join ();
+int
+main ()
+{
+return pthread_join ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_pthread_pthread_join=yes
+else
+  ac_cv_lib_pthread_pthread_join=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pthread_pthread_join" >&5
+$as_echo "$ac_cv_lib_pthread_pthread_join" >&6; }
+if test "x$ac_cv_lib_pthread_pthread_join" = xyes; then :
+
+        OPENSSL_LIBS="-lssl"
+
+$as_echo "#define HAVE_OPENSSL /**/" >>confdefs.h
+
+        WITH_OPENSSL="1"
+fi
+
+fi
+
+
+fi
+
+
+
+
+
+
+LDFLAGS="$SAVE_LDFLAGS"
+CPPFLAGS="$SAVE_CPPFLAGS"
 
 ##########################################################################
 # threads support
@@ -12071,6 +12184,9 @@ $as_echo "#define HAVE_LIBPTHREAD /**/" >>confdefs.h
 
 
 $as_echo "#define HAVE_PTHREAD_H /**/" >>confdefs.h
+
+
+$as_echo "#define HAVE_THREADS /**/" >>confdefs.h
 
             WITH_THREADS="1"
 fi

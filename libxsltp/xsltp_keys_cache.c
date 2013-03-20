@@ -38,9 +38,11 @@ xsltp_keys_cache_create_keys(char *stylesheet_uri, time_t stylesheet_mtime,
 static xsltp_bool_t
 xsltp_keys_cache_init(xsltp_t *processor, xsltp_keys_cache_t *keys_cache)
 {
+#ifdef HAVE_THREADS
     if ((keys_cache->cache_lock = xsltp_rwlock_init()) == NULL) {
         return FALSE;
     }
+#endif
 
     keys_cache->processor = processor;
 
@@ -127,12 +129,17 @@ xsltp_keys_cache_destroy(xsltp_keys_cache_t *keys_cache)
 #ifdef WITH_DEBUG
     printf("xsltp_keys_cache_destroy: destroy\n");
 #endif
+
+#ifdef HAVE_THREADS
     xsltp_rwlock_wrlock(keys_cache->cache_lock);
+#endif
 
     xsltp_keys_cache_free_keys_list(&keys_cache->list, XSLT_KEYS_LIST_FREE_KEYS | XSLT_KEYS_LIST_FREE_DATA);
 
+#ifdef HAVE_THREADS
     xsltp_rwlock_unlock(keys_cache->cache_lock);
     xsltp_rwlock_destroy(keys_cache->cache_lock);
+#endif
 }
 
 static xsltp_keys_t *
@@ -179,8 +186,9 @@ xsltp_keys_cache_put(xsltp_keys_cache_t *keys_cache, char *stylesheet_uri,
     printf("xsltp_keys_cache_put: xslt_document %p, xslt_document->doc %p\n", xslt_document, xslt_document->doc);
 #endif
 
-    /* write lock start */
+#ifdef HAVE_THREADS
     xsltp_rwlock_wrlock(keys_cache->cache_lock);
+#endif
 
     xsltp_keys = xsltp_keys_cache_lookup(
         keys_cache, stylesheet_uri, stylesheet_mtime, document_uri, document_mtime
@@ -198,8 +206,9 @@ xsltp_keys_cache_put(xsltp_keys_cache_t *keys_cache, char *stylesheet_uri,
 
     }
 
-    /* write lock finish */
+#ifdef HAVE_THREADS
     xsltp_rwlock_unlock(keys_cache->cache_lock);
+#endif
 }
 
 void
@@ -219,8 +228,9 @@ xsltp_keys_cache_get(xsltp_keys_cache_t *keys_cache, xsltp_list_t *keys_list,
     printf("xsltp_keys_cache_get: init keys list\n");
 #endif
 
-    /* read lock start */
+#ifdef HAVE_THREADS
     xsltp_rwlock_rdlock(keys_cache->cache_lock);
+#endif
 
 #ifdef WITH_DEBUG
     printf("xsltp_keys_cache_get: lock\n");
@@ -249,8 +259,9 @@ xsltp_keys_cache_get(xsltp_keys_cache_t *keys_cache, xsltp_list_t *keys_list,
 #endif
     }
 
-    /* write lock finish */
+#ifdef HAVE_THREADS
     xsltp_rwlock_unlock(keys_cache->cache_lock);
+#endif
 
 #ifdef WITH_DEBUG
     printf("xsltp_keys_cache_get: done\n");
@@ -269,8 +280,9 @@ xsltp_keys_cache_expire(xsltp_keys_cache_t *keys_cache, char *stylesheet_uri,
     printf("xsltp_keys_cache_expire: stylesheet %s %d, document %p\n", stylesheet_uri, (int) stylesheet_mtime, document_uri);
 #endif
 
-    /* write lock start */
+#ifdef HAVE_THREADS
     xsltp_rwlock_wrlock(keys_cache->cache_lock);
+#endif
 
     for (el = xsltp_list_first(&keys_cache->list); el != xsltp_list_end(&keys_cache->list); el = xsltp_list_next(el)) {
         xsltp_keys = (xsltp_keys_t *) el;
@@ -297,8 +309,9 @@ xsltp_keys_cache_expire(xsltp_keys_cache_t *keys_cache, char *stylesheet_uri,
 #endif
     }
 
-    /* write lock finish */
+#ifdef HAVE_THREADS
     xsltp_rwlock_unlock(keys_cache->cache_lock);
+#endif
 }
 
 /*
