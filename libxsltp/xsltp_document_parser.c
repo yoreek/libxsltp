@@ -44,10 +44,18 @@ xsltp_document_parser_loader_func(const xmlChar * URI, xmlDictPtr dict,
     }
 
     xsltp_t *processor = ((xsltTransformContextPtr) ctxt)->_private;
-    /* !!! don't cache stylesheets */
-    if (processor->id != XSLT_PROCESSOR_ID) {
+    /* it is not processor */
+    if (processor->id != XSLTP_PROCESSOR_ID) {
 #ifdef WITH_DEBUG
         printf("xsltp_document_parser_loader_func: wrong processor id, using default parser for '%s'\n", uri);
+#endif
+        return xsltp_document_parser_loader_func_original(URI, dict, options, ctxt, type);
+    }
+
+    /* caching not enabled */
+    if (!processor->document_caching_enable) {
+#ifdef WITH_DEBUG
+        printf("xsltp_document_parser_loader_func: caching not enabled for '%s'\n", uri);
 #endif
         return xsltp_document_parser_loader_func_original(URI, dict, options, ctxt, type);
     }
@@ -64,10 +72,6 @@ xsltp_document_parser_loader_func(const xmlChar * URI, xmlDictPtr dict,
 #ifdef WITH_DEBUG
             printf("xsltp_document_parser_loader_func: parse document %s\n", uri);
 #endif
-/*          time_t t = time(NULL) + 10;
-            while (time(NULL) < t) {
-                sleep(1);
-            }*/
             xsltp_document->doc = xsltp_document_parser_load_document(URI, dict, options, ctxt, type);
             if (xsltp_document->doc == NULL) {
 #ifdef WITH_DEBUG

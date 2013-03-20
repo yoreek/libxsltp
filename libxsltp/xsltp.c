@@ -19,23 +19,39 @@ xsltp_backup_keys(xsltp_t *processor,
     printf("xsltp_backup_keys: stylesheet %s\n", xsltp_stylesheet->uri);
 #endif
 
+    if (!processor->document_caching_enable) {
+        return;
+    }
+
     for ( ;; ) {
         xslt_document = *doc_list;
 
-        if (xslt_document == NULL || xslt_document->main)
+        if (xslt_document == NULL || xslt_document->main) {
             break;
-
-        doc            = xslt_document->doc;
-        doc_extra_info = doc->_private;
-
-#ifdef WITH_DEBUG
-        printf("xsltp_backup_keys: document %s\n", doc->URL);
-#endif
-        xsltp_keys_cache_put(processor->keys_cache, xsltp_stylesheet->uri,
-            xsltp_stylesheet->mtime, (char *) doc->URL, doc_extra_info->mtime,
-            xslt_document);
+        }
 
         *doc_list = xslt_document->next;
+
+        if (processor->keys_caching_enable) {
+            if (xslt_document->main) {
+                break;
+            }
+
+            doc            = xslt_document->doc;
+            doc_extra_info = doc->_private;
+
+#ifdef WITH_DEBUG
+            printf("xsltp_backup_keys: document %s\n", doc->URL);
+#endif
+            xsltp_keys_cache_put(processor->keys_cache, xsltp_stylesheet->uri,
+                xsltp_stylesheet->mtime, (char *) doc->URL, doc_extra_info->mtime,
+                xslt_document);
+        }
+        else {
+            xsltFreeDocumentKeys(xslt_document);
+            xslt_document->doc = NULL;
+            free(xslt_document);
+        }
     }
 }
 
@@ -50,6 +66,10 @@ xsltp_restore_keys(xsltp_t *processor,
 #ifdef WITH_DEBUG
     printf("xsltp_restore_keys: stylesheet %s\n", xsltp_stylesheet->uri);
 #endif
+
+    if (!processor->document_caching_enable || !processor->keys_caching_enable) {
+        return;
+    }
 
     xsltp_keys_cache_get(processor->keys_cache, &xsltp_keys_list,
         xsltp_stylesheet->uri, xsltp_stylesheet->mtime);
@@ -86,37 +106,198 @@ xsltp_restore_keys(xsltp_t *processor,
 #endif
 }
 
+static void
+xsltp_reset_profile_info(xsltTransformContextPtr ctxt)
+{
+    xsltTemplatePtr   template;
+    xsltStylesheetPtr style;
+
+    style = ctxt->style;
+
+    while (style != NULL) {
+        template = style->templates;
+
+        while (template != NULL) {
+            template->nbCalls = 0;
+            template->time    = 0;
+
+            template = template->next;
+        }
+
+        style = xsltNextImport(style);
+    }
+}
+
+static xmlDocPtr
+xsltp_apply_stylesheet(xsltp_t *processor, xsltp_stylesheet_t *xsltp_stylesheet,
+    xmlDocPtr doc, const char **params, FILE *profiler_handle, xmlDocPtr *profiler_info, int pass)
+{
+    xsltTransformContextPtr ctxt;
+    xmlDocPtr               result_doc;
+
+    ctxt = xsltNewTransformContext(xsltp_stylesheet->stylesheet, doc);
+    ctxt->_private         = processor;
+    ctxt->maxTemplateDepth = processor->stylesheet_max_depth;
+
+    if (profiler_info != NULL && pass == 1) {
+        xsltp_reset_profile_info(ctxt);
+    }
+
+    xsltp_restore_keys(processor, xsltp_stylesheet, &ctxt->docList);
+
+    result_doc = xsltApplyStylesheetUser(xsltp_stylesheet->stylesheet,
+        doc, params, NULL, profiler_handle, ctxt);
+
+    xsltp_backup_keys(processor, xsltp_stylesheet, &ctxt->docList);
+
+    if (result_doc != NULL && profiler_info != NULL && pass == processor->profiler->repeat) {
+        *profiler_info = xsltGetProfileInformation(ctxt);
+    }
+
+    xsltFreeTransformContext(ctxt);
+
+    return result_doc;
+}
+
 xsltp_result_t *
 xsltp_transform(xsltp_t *processor,
-    char *stylesheet_uri, xmlDocPtr doc, const char **params)
+    char *stylesheet_uri, xmlDocPtr doc, const char **params,
+    xsltp_profiler_result_t *parent_profiler_result)
 {
-    xsltp_result_t         *result;
-    xsltTransformContextPtr ctxt;
+    xsltp_stylesheet_t      *xsltp_stylesheet = NULL;
+    xsltp_result_t          *result = NULL;
+    xmlDocPtr                result_doc = NULL;
+    long                     start = 0, spent = 0;
+    int                      i = 1;
+    xsltp_profiler_result_t *profiler_result = NULL;
+    xmlDocPtr                profiler_info = NULL;
 
 #ifdef WITH_DEBUG
     printf("xsltp_transform: start\n");
 #endif
 
-    if ((result = xsltp_result_create(processor)) == NULL) {
-        return NULL;
+    xsltp_stylesheet = xsltp_stylesheet_parser_parse_file(processor->stylesheet_parser, stylesheet_uri);
+    if (xsltp_stylesheet == NULL) {
+        goto FAIL;
     }
 
-    result->xsltp_stylesheet = xsltp_stylesheet_parser_parse_file(processor->stylesheet_parser, stylesheet_uri);
+    result = xsltp_result_create(processor);
+    if (result == NULL) {
+        goto FAIL;
+    }
 
-    ctxt = xsltNewTransformContext(result->xsltp_stylesheet->stylesheet, doc);
-    ctxt->_private = processor;
+    if (processor->profiler != NULL) {
+        profiler_result = parent_profiler_result;
+        if (profiler_result == NULL) {
+            profiler_result = xsltp_profiler_result_create(processor);
+            if (profiler_result == NULL) {
+                goto FAIL;
+            }
+        }
 
-    xsltp_restore_keys(processor, result->xsltp_stylesheet, &ctxt->docList);
+        start = xsltTimestamp();
 
-    result->doc = xsltApplyStylesheetUser(result->xsltp_stylesheet->stylesheet, doc, params, NULL, NULL, ctxt);
+        for (i = 1; i <= processor->profiler->repeat; i++) {
+            /* cleanup prev result */
+            if (result_doc != NULL) {
+                xmlFreeDoc(result_doc);
+            }
 
-    xsltp_backup_keys(processor, result->xsltp_stylesheet, &ctxt->docList);
+            result_doc = xsltp_apply_stylesheet(processor, xsltp_stylesheet,
+                doc, params, processor->profiler->handle, &profiler_info, i
+            );
+            if (result_doc == NULL) {
+                goto FAIL;
+            }
+        }
 
-    xsltFreeTransformContext(ctxt);
+        spent = xsltTimestamp() - start;
+
+        if (profiler_info != NULL) {
+            xsltp_profiler_result_update(profiler_result, xsltp_stylesheet,
+                                         params, spent, result_doc, profiler_info);
+
+            xmlFreeDoc(profiler_info);
+        }
+    }
+    else {
+        result_doc = xsltp_apply_stylesheet(processor, xsltp_stylesheet, doc, params, NULL, NULL, 1);
+        if (result_doc == NULL) {
+            goto FAIL;
+        }
+    }
+
+    result->doc              = result_doc;
+    result->xsltp_stylesheet = xsltp_stylesheet;
+
+    if (profiler_result != NULL && parent_profiler_result == NULL) {
+        result->profiler_result = profiler_result;
+        xsltp_profiler_result_apply(processor->profiler, profiler_result, result->doc);
+    }
 
 #ifdef WITH_DEBUG
     printf("xsltp_transform: done\n");
 #endif
+
+    return result;
+
+FAIL:
+    if (result != NULL) {
+        xsltp_result_destroy(result);
+    }
+
+    if (xsltp_stylesheet != NULL && !processor->stylesheet_caching_enable) {
+        xsltp_stylesheet_parser_destroy_stylesheet(xsltp_stylesheet);
+    }
+
+#ifdef WITH_DEBUG
+    printf("xsltp_transform: fail\n");
+#endif
+
+    return NULL;
+}
+
+xsltp_result_t *
+xsltp_transform_multi(xsltp_t *processor, xsltp_transform_ctxt_t *transform_ctxt, xmlDocPtr doc)
+{
+    int                      i;
+    xsltp_result_t          *result = NULL;
+    xsltp_profiler_result_t *profiler_result = NULL;
+
+    if (processor->profiler != NULL) {
+        profiler_result = xsltp_profiler_result_create(processor);
+        if (profiler_result == NULL) {
+            return NULL;
+        }
+    }
+
+    for (i = 0; i < XSLTP_MAX_TRANSFORMATIONS; i++) {
+        if (transform_ctxt[i].stylesheet == NULL) {
+            break;
+        }
+
+        if (result != NULL) {
+            doc = result->doc;
+            result->doc = NULL;
+            xsltp_result_destroy(result);
+        }
+
+        result = xsltp_transform(processor, transform_ctxt[i].stylesheet,
+            doc, (const char **) transform_ctxt[i].params, profiler_result);
+
+        if (i > 0) {
+            xmlFreeDoc(doc);
+        }
+
+        if (result == NULL) {
+            break;
+        }
+    }
+
+    if (profiler_result != NULL && result != NULL) {
+        result->profiler_result = profiler_result;
+        xsltp_profiler_result_apply(processor->profiler, profiler_result, result->doc);
+    }
 
     return result;
 }
@@ -162,7 +343,7 @@ xsltp_create(void)
     }
     memset(processor, 0, sizeof(xsltp_t));
 
-    processor->id = XSLT_PROCESSOR_ID;
+    processor->id = XSLTP_PROCESSOR_ID;
 
     if (! xsltp_init(processor)) {
         xsltp_destroy(processor);
@@ -183,6 +364,7 @@ xsltp_destroy(xsltp_t *processor)
         xsltp_stylesheet_parser_destroy(processor->stylesheet_parser);
         xsltp_document_parser_destroy(processor->document_parser);
         xsltp_keys_cache_destroy(processor->keys_cache);
+        xsltp_profiler_destroy(processor->profiler);
         xsltp_free(processor);
     }
 }

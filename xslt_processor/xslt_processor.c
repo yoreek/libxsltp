@@ -34,7 +34,7 @@ int run(char *stylesheet, char *xml) {
             }
 
             for ( ;; ) {
-                result = xsltp_transform(processor, stylesheet, xml_doc, NULL);
+                result = xsltp_transform(processor, stylesheet, xml_doc, NULL, NULL);
                 if (result == NULL) {
                     status = -1;
                     perror("Error to transform");

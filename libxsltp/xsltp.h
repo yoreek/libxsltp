@@ -9,50 +9,61 @@
 #include <libxslt/xslt.h>
 #include <libxslt/transform.h>
 #include <libxslt/documents.h>
+#include <libxslt/imports.h>
+#include <libxslt/xsltutils.h>
 #include <libexslt/exslt.h>
 
-#define XSLT_PROCESSOR_ID (0x7755)
+#define XSLTP_PROCESSOR_ID              (0x7755)
+#define XSLTP_MAX_TRANSFORMATIONS        16
+#define XSLTP_MAX_TRANSFORMATIONS_PARAMS 254
+
+typedef struct xsltp_transform_ctxt xsltp_transform_ctxt_t;
+struct xsltp_transform_ctxt {
+    char *stylesheet;
+    char *params[XSLTP_MAX_TRANSFORMATIONS_PARAMS + 1];
+};
 
 typedef struct xsltp_stylesheet xsltp_stylesheet_t;
 struct xsltp_stylesheet {
-    xsltp_list_t            list;
-    char                   *uri;
-    xsltStylesheetPtr       stylesheet;
-    xsltDocumentPtr         doc_list;
-    time_t                  expired;
-    time_t                  mtime;
-    int                     creating;
-    int                     error;
+    xsltp_list_t                     list;
+    char                            *uri;
+    xsltStylesheetPtr                stylesheet;
+    xsltDocumentPtr                  doc_list;
+    time_t                           expired;
+    time_t                           mtime;
+    int                              creating;
+    int                              error;
 };
 
 typedef struct xsltp_document xsltp_document_t;
 struct xsltp_document {
-    xsltp_list_t      list;
-    char             *uri;
-    xmlDocPtr         doc;
-    time_t            expired;
-    int               creating;
-    int               error;
+    xsltp_list_t                     list;
+    char                            *uri;
+    xmlDocPtr                        doc;
+    time_t                           expired;
+    int                              creating;
+    int                              error;
 };
 
 typedef struct xsltp_xml_document_extra_info xsltp_xml_document_extra_info_t;
 struct xsltp_xml_document_extra_info {
-    time_t mtime;
+    time_t                           mtime;
 };
 
 typedef struct xsltp_keys xsltp_keys_t;
 struct xsltp_keys {
-    xsltp_list_t      list;
-    char             *stylesheet_uri;
-    time_t            stylesheet_mtime;
-    char             *document_uri;
-    time_t            document_mtime;
-    xsltDocumentPtr   xslt_document;
-    xsltDocumentPtr   xslt_document_not_computed_keys;
-    time_t            expired;
+    xsltp_list_t                     list;
+    char                            *stylesheet_uri;
+    time_t                           stylesheet_mtime;
+    char                            *document_uri;
+    time_t                           document_mtime;
+    xsltDocumentPtr                  xslt_document;
+    xsltDocumentPtr                  xslt_document_not_computed_keys;
+    time_t                           expired;
 };
 
 typedef struct _xsltp_t xsltp_t;
+typedef struct xsltp_profiler xsltp_profiler_t;
 
 typedef struct {
     xsltp_rwlock_t                  *cache_lock;
@@ -98,24 +109,48 @@ struct _xsltp_t {
     xsltp_stylesheet_parser_t       *stylesheet_parser;
     xsltp_document_parser_t         *document_parser;
     xsltp_keys_cache_t              *keys_cache;
+    xsltp_profiler_t                *profiler;
+};
+
+struct xsltp_profiler {
+    u_int8_t                         repeat;
+    xsltStylesheetPtr                stylesheet;
+    xsltp_t                         *processor;
+    FILE                            *handle;
+};
+
+typedef struct xsltp_profiler_result xsltp_profiler_result_t;
+struct xsltp_profiler_result {
+    xmlDocPtr                        doc;
 };
 
 typedef struct {
     xsltp_t                         *processor;
     xsltp_stylesheet_t              *xsltp_stylesheet;
     xmlDocPtr                        doc;
+    xsltp_profiler_result_t         *profiler_result;
 } xsltp_result_t;
 
 xsltp_t *xsltp_create(void);
 void xsltp_destroy(xsltp_t *processor);
 xsltp_result_t *xsltp_transform(xsltp_t *processor,
-    char *stylesheet_uri, xmlDocPtr doc, const char **params);
+    char *stylesheet_uri, xmlDocPtr doc, const char **params, xsltp_profiler_result_t *profiler_result);
+xsltp_result_t *xsltp_transform_multi(xsltp_t *processor, xsltp_transform_ctxt_t *transform_ctxt, xmlDocPtr doc);
 
 xsltp_result_t *xsltp_result_create(xsltp_t *processor);
 void xsltp_result_destroy(xsltp_result_t *result);
 int xsltp_result_save(xsltp_result_t *result, xmlOutputBufferPtr output);
 int xsltp_result_save_to_file(xsltp_result_t *result, char *filename);
 int xsltp_result_save_to_string(xsltp_result_t *result, char **buf, int *buf_len);
+
+xsltp_profiler_result_t *xsltp_profiler_result_create(xsltp_t *processor);
+void xsltp_profiler_result_destroy(xsltp_profiler_result_t *profiler_result);
+xsltp_bool_t xsltp_profiler_result_apply(xsltp_profiler_t *profiler, xsltp_profiler_result_t *profiler_result, xmlDocPtr doc);
+void xsltp_profiler_result_update(xsltp_profiler_result_t *profiler_result,
+    xsltp_stylesheet_t *xsltp_stylesheet, const char **params,
+    long spent, xmlDocPtr doc, xmlDocPtr profile_info);
+xsltp_profiler_t *xsltp_profiler_create(xsltp_t *processor);
+void xsltp_profiler_destroy(xsltp_profiler_t *profiler);
 
 xsltp_stylesheet_parser_t *xsltp_stylesheet_parser_create(xsltp_t *processor);
 void xsltp_stylesheet_parser_destroy(xsltp_stylesheet_parser_t *stylesheet_parser);

@@ -1,8 +1,8 @@
-INCLUDES = -I$(top_srcdir) -I/usr/include/libxml2
-
-AM_LDFLAGS = -lxml2
+AM_CPPFLAGS = -I$(top_srcdir)
+AM_CFLAGS = $(LIBXSLT_CFLAGS)
+AM_LDFLAGS = $(LIBXSLT_CFLAGS)
 
 bin_PROGRAMS = xslt_processor
-xsltp_SOURCES = xslt_processor.c
+xslt_processor = xslt_processor.c
 
 LDADD =  $(top_srcdir)/libxsltp/libxsltp-1.0.la
