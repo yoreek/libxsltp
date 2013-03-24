@@ -25,9 +25,7 @@ AC_MSG_RESULT(Enable debug support: [$debugit])
 
 if test x"$debugit" = x"yes"; then
     AC_DEFINE([WITH_DEBUG],[1],[Debug Mode])
-    AM_CXXFLAGS="$AM_CXXFLAGS -g -Wall -Werror -Wno-uninitialized -O0"
-else
-    AM_CXXFLAGS="$AM_CXXFLAGS -O3"
+    CFLAGS="-g -Wall -Werror -Wno-uninitialized -O0 -pedantic"
 fi
 AM_CONDITIONAL([WITH_DEBUG], [test x$debug = xtrue])
 
@@ -179,6 +177,6 @@ AC_SUBST(LIBXSLT_LIBS)
 AC_SUBST(LIBXSLT_CFLAGS)
 
 
-AC_SUBST([AM_CXXFLAGS])
+AC_SUBST(CFLAGS)
 
 AC_OUTPUT(Makefile libxsltp/Makefile xslt_processor/Makefile)

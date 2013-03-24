@@ -74,9 +74,7 @@ xsltp_stylesheet_parser_cache_lookup(xsltp_stylesheet_parser_cache_t *stylesheet
     xsltp_list_t       *el, *list;
     int                 is_found = 0;
 
-#ifdef WITH_DEBUG
-    printf("xsltp_stylesheet_parser_cache_lookup: find %s\n", uri);
-#endif
+    xsltp_log_debug1("find %s", uri);
 
 #ifdef HAVE_THREADS
     xsltp_rwlock_wrlock(stylesheet_parser_cache->cache_lock);
@@ -88,9 +86,8 @@ xsltp_stylesheet_parser_cache_lookup(xsltp_stylesheet_parser_cache_t *stylesheet
 
         if (strcmp(xsltp_stylesheet->uri, uri) == 0) {
             if (xsltp_stylesheet->expired == 0 && xsltp_stylesheet->error == 0) {
-#ifdef WITH_DEBUG
-                printf("xsltp_stylesheet_parser_cache_lookup: stylesheet %s found in cache\n", uri);
-#endif
+                xsltp_log_debug1("stylesheet %s found in cache", uri);
+
                 is_found = 1;
                 break;
             }
@@ -105,9 +102,8 @@ xsltp_stylesheet_parser_cache_lookup(xsltp_stylesheet_parser_cache_t *stylesheet
         xsltp_stylesheet = xsltp_stylesheet_parser_create_stylesheet(uri);
         xsltp_list_insert_tail(list, (xsltp_list_t *) xsltp_stylesheet);
     } else if (xsltp_stylesheet->stylesheet == NULL && xsltp_stylesheet_old != NULL) {
-#ifdef WITH_DEBUG
-        printf("xsltp_stylesheet_parser_cache_lookup: stylesheet(expired) %s found in cache\n", uri);
-#endif
+        xsltp_log_debug1("stylesheet(expired) %s found in cache", uri);
+
         xsltp_stylesheet = xsltp_stylesheet_old;
     }
 
@@ -121,21 +117,26 @@ xsltp_stylesheet_parser_cache_lookup(xsltp_stylesheet_parser_cache_t *stylesheet
 static xsltp_bool_t
 xsltp_stylesheet_parser_cache_check_if_modify(xsltp_stylesheet_t *xsltp_stylesheet)
 {
-    xsltStylesheetPtr           stylesheet;
-    xmlDocPtr                   doc;
+    xsltStylesheetPtr                stylesheet;
+    xmlDocPtr                        doc;
     xsltp_xml_document_extra_info_t *doc_extra_info;
+    time_t                           cur_mtime;
 
     stylesheet = xsltp_stylesheet->stylesheet;
     while (stylesheet != NULL) {
         doc            = stylesheet->doc;
         doc_extra_info = doc->_private;
 
-        if (doc_extra_info->mtime != xsltp_last_modify(doc->URL)) {
-#ifdef WITH_DEBUG
-            printf("xsltp_stylesheet_parser_cache_check_if_modify: stylesheet is updated: %s mtime_old: %d mtime: %d\n", doc->URL, (int) doc_extra_info->mtime, (int) xsltp_last_modify(doc->URL));
-#endif
+        xsltp_log_debug2("check stylesheet: %s extra info: %p", doc->URL, doc_extra_info);
+
+        cur_mtime = xsltp_last_modify((const char *) doc->URL);
+        if (doc_extra_info->mtime != cur_mtime) {
+            xsltp_log_debug3("stylesheet is updated: %s mtime_old: %d mtime: %d", doc->URL, (int) doc_extra_info->mtime, (int) cur_mtime);
+
             return 1;
         }
+
+        xsltp_log_debug0("check imports");
 
         if (stylesheet->imports != NULL) {
             stylesheet = stylesheet->imports;
@@ -153,18 +154,16 @@ xsltp_stylesheet_parser_cache_check_if_modify(xsltp_stylesheet_t *xsltp_styleshe
     return 0;
 }
 
-/*
-void xsltp_stylesheet_parser_cache_clean(xsltp_stylesheet_parser_cache_t *stylesheet_parser_cache) {
+void xsltp_stylesheet_parser_cache_clean(xsltp_stylesheet_parser_cache_t *stylesheet_parser_cache, xsltp_keys_cache_t *keys_cache) {
     xsltp_stylesheet_t *xsltp_stylesheet;
     time_t              now;
     xsltp_list_t       *el, *list;
 
-#ifdef WITH_DEBUG
-    printf("xsltp_stylesheet_parser_cache_clean: start\n");
-#endif
+    xsltp_log_debug0("start");
 
-    // write lock start
+#ifdef HAVE_THREADS
     xsltp_rwlock_wrlock(stylesheet_parser_cache->cache_lock);
+#endif
 
     list = &stylesheet_parser_cache->list;
     now = time(NULL);
@@ -172,38 +171,37 @@ void xsltp_stylesheet_parser_cache_clean(xsltp_stylesheet_parser_cache_t *styles
     while (el != xsltp_list_end(list)) {
         xsltp_stylesheet = (xsltp_stylesheet_t *) el;
 
+        xsltp_log_debug1("Check stylesheet: %s", xsltp_stylesheet->uri);
+
         if (
             xsltp_stylesheet->expired == 0 &&
             xsltp_stylesheet_parser_cache_check_if_modify(xsltp_stylesheet)
         ) {
-#ifdef WITH_DEBUG
-            printf("xsltp_stylesheet_parser_cache_clean: stylesheet %s is expired\n", xsltp_stylesheet->uri);
-#endif
+            xsltp_log_debug1("stylesheet %s is expired", xsltp_stylesheet->uri);
+
             xsltp_stylesheet->expired = now;
-            xsltp_keys_cache_expire(xsltp_stylesheet->uri, xsltp_stylesheet->mtime, NULL, 0);
+            xsltp_keys_cache_expire(keys_cache, xsltp_stylesheet->uri, xsltp_stylesheet->mtime, NULL, 0);
         }
 
         if (
             xsltp_stylesheet->expired != 0 &&
             (now - xsltp_stylesheet->expired) > 0
         ) {
-            // clean
+            /* clean */
             xsltp_list_remove(el);
             el = xsltp_list_next(el);
-#ifdef WITH_DEBUG
-            printf("xsltp_stylesheet_parser_cache_clean: free stylesheet %s\n", xsltp_stylesheet->uri);
-#endif
+
+            xsltp_log_debug1("free stylesheet %s", xsltp_stylesheet->uri);
+
             xsltp_stylesheet_parser_destroy_stylesheet(xsltp_stylesheet);
         } else {
             el = xsltp_list_next(el);
         }
     }
 
-    // write lock finish
+#ifdef HAVE_THREADS
     xsltp_rwlock_unlock(stylesheet_parser_cache->cache_lock);
-
-#ifdef WITH_DEBUG
-    printf("xsltp_stylesheet_parser_cache_clean: end\n");
 #endif
+
+    xsltp_log_debug0("end");
 }
-*/

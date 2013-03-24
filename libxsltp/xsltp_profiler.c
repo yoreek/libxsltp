@@ -46,9 +46,7 @@ xsltp_profiler_result_create(xsltp_t *processor)
 {
     xsltp_profiler_result_t *profiler_result;
 
-#ifdef WITH_DEBUG
-    printf("xsltp_profiler_result_create: create\n");
-#endif
+    xsltp_log_debug0("create");
 
     if ((profiler_result = xsltp_malloc(sizeof(xsltp_profiler_result_t))) == NULL) {
         return NULL;
@@ -66,9 +64,7 @@ xsltp_profiler_result_create(xsltp_t *processor)
 void
 xsltp_profiler_result_destroy(xsltp_profiler_result_t *profiler_result)
 {
-#ifdef WITH_DEBUG
-    printf("xsltp_profiler_result_destroy: destroy\n");
-#endif
+    xsltp_log_debug0("destroy");
 
     if (profiler_result != NULL) {
         if (profiler_result->doc != NULL) {
@@ -177,9 +173,7 @@ xsltp_profiler_create(xsltp_t *processor)
 {
     xsltp_profiler_t *profiler;
 
-#ifdef WITH_DEBUG
-    printf("xsltp_profiler_create: create\n");
-#endif
+    xsltp_log_debug0("create");
 
     if ((profiler = xsltp_malloc(sizeof(xsltp_profiler_t))) == NULL) {
         return NULL;
@@ -197,9 +191,7 @@ xsltp_profiler_create(xsltp_t *processor)
 void
 xsltp_profiler_destroy(xsltp_profiler_t *profiler)
 {
-#ifdef WITH_DEBUG
-    printf("xsltp_profiler_destroy: destroy\n");
-#endif
+    xsltp_log_debug0("destroy");
 
     if (profiler != NULL) {
         if (profiler->stylesheet != NULL) {

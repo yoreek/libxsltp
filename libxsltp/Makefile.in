@@ -98,7 +98,8 @@ am_libxsltp_1_0_la_OBJECTS = xsltp.lo xsltp_result.lo \
 	xsltp_document_parser.lo xsltp_document_parser_cache.lo \
 	xsltp_stylesheet_parser.lo xsltp_stylesheet_parser_cache.lo \
 	xsltp_keys_cache.lo xsltp_profiler.lo xsltp_core.lo \
-	xsltp_list.lo xsltp_string.lo xsltp_pthread_thread.lo
+	xsltp_list.lo xsltp_log.lo xsltp_string.lo \
+	xsltp_pthread_thread.lo
 libxsltp_1_0_la_OBJECTS = $(am_libxsltp_1_0_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -125,7 +126,6 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
-AM_CXXFLAGS = @AM_CXXFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -262,6 +262,7 @@ libxsltp_1_0_la_SOURCES = \
             xsltp_profiler.c                \
             xsltp_core.c                    \
             xsltp_list.c                    \
+            xsltp_log.c                     \
             xsltp_string.c                  \
             xsltp_pthread_thread.c
 
@@ -346,6 +347,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_document_parser_cache.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_keys_cache.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_list.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_log.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_profiler.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_pthread_thread.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_result.Plo@am__quote@

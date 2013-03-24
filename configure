@@ -635,7 +635,6 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
-AM_CXXFLAGS
 LIBXSLT_CFLAGS
 LIBXSLT_LIBS
 XSLT_CONFIG
@@ -11996,9 +11995,7 @@ if test x"$debugit" = x"yes"; then
 
 $as_echo "#define WITH_DEBUG 1" >>confdefs.h
 
-    AM_CXXFLAGS="$AM_CXXFLAGS -g -Wall -Werror -Wno-uninitialized -O0"
-else
-    AM_CXXFLAGS="$AM_CXXFLAGS -O3"
+    CFLAGS="-g -Wall -Werror -Wno-uninitialized -O0 -pedantic"
 fi
  if test x$debug = xtrue; then
   WITH_DEBUG_TRUE=

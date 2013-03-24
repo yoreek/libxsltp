@@ -12,14 +12,11 @@ static void
 xsltp_backup_keys(xsltp_t *processor,
     xsltp_stylesheet_t *xsltp_stylesheet, xsltDocumentPtr *doc_list)
 {
-    xsltp_keys_t                    *xsltp_keys;
     xmlDocPtr                        doc;
     xsltDocumentPtr                  xslt_document;
     xsltp_xml_document_extra_info_t *doc_extra_info;
 
-#ifdef WITH_DEBUG
-    printf("xsltp_backup_keys: stylesheet %s\n", xsltp_stylesheet->uri);
-#endif
+    xsltp_log_debug1("stylesheet %s", xsltp_stylesheet->uri);
 
     if (!processor->document_caching_enable) {
         return;
@@ -42,9 +39,8 @@ xsltp_backup_keys(xsltp_t *processor,
             doc            = xslt_document->doc;
             doc_extra_info = doc->_private;
 
-#ifdef WITH_DEBUG
-            printf("xsltp_backup_keys: document %s\n", doc->URL);
-#endif
+            xsltp_log_debug1("document %s", doc->URL);
+
             xsltp_keys_cache_put(processor->keys_cache, xsltp_stylesheet->uri,
                 xsltp_stylesheet->mtime, (char *) doc->URL, doc_extra_info->mtime,
                 xslt_document);
@@ -65,9 +61,7 @@ xsltp_restore_keys(xsltp_t *processor,
     xsltp_keys_t      *xsltp_keys;
     xsltDocumentPtr    xslt_document;
 
-#ifdef WITH_DEBUG
-    printf("xsltp_restore_keys: stylesheet %s\n", xsltp_stylesheet->uri);
-#endif
+    xsltp_log_debug1("stylesheet %s", xsltp_stylesheet->uri);
 
     if (!processor->document_caching_enable || !processor->keys_caching_enable) {
         return;
@@ -83,9 +77,7 @@ xsltp_restore_keys(xsltp_t *processor,
     ) {
         xsltp_keys = (xsltp_keys_t *) el;
 
-#ifdef WITH_DEBUG
-        printf("xsltp_restore_keys: document %s\n", xsltp_keys->document_uri);
-#endif
+        xsltp_log_debug1("document %s", xsltp_keys->document_uri);
 
         if ((xslt_document = xsltp_malloc(sizeof(xsltDocument))) == NULL) {
             return;
@@ -103,9 +95,7 @@ xsltp_restore_keys(xsltp_t *processor,
 
     xsltp_keys_cache_free_keys_list(&xsltp_keys_list, XSLT_KEYS_LIST_FREE_NONE);
 
-#ifdef WITH_DEBUG
-    printf("xsltp_restore_keys: done\n");
-#endif
+    xsltp_log_debug0("done");
 }
 
 static void
@@ -174,9 +164,7 @@ xsltp_transform(xsltp_t *processor,
     xsltp_profiler_result_t *profiler_result = NULL;
     xmlDocPtr                profiler_info = NULL;
 
-#ifdef WITH_DEBUG
-    printf("xsltp_transform: start\n");
-#endif
+    xsltp_log_debug0("start");
 
     xsltp_stylesheet = xsltp_stylesheet_parser_parse_file(processor->stylesheet_parser, stylesheet_uri);
     if (xsltp_stylesheet == NULL) {
@@ -237,9 +225,7 @@ xsltp_transform(xsltp_t *processor,
         xsltp_profiler_result_apply(processor->profiler, profiler_result, result->doc);
     }
 
-#ifdef WITH_DEBUG
-    printf("xsltp_transform: done\n");
-#endif
+    xsltp_log_debug0("done");
 
     return result;
 
@@ -252,9 +238,7 @@ FAIL:
         xsltp_stylesheet_parser_destroy_stylesheet(xsltp_stylesheet);
     }
 
-#ifdef WITH_DEBUG
-    printf("xsltp_transform: fail\n");
-#endif
+    xsltp_log_debug0("fail");
 
     return NULL;
 }
@@ -336,9 +320,7 @@ xsltp_create(void)
 {
     xsltp_t *processor;
 
-#ifdef WITH_DEBUG
-    printf("xsltp_create: create a new processor\n");
-#endif
+    xsltp_log_debug0("create a new processor");
 
     if ((processor = xsltp_malloc(sizeof(xsltp_t))) == NULL) {
         return NULL;
@@ -358,9 +340,7 @@ xsltp_create(void)
 void
 xsltp_destroy(xsltp_t *processor)
 {
-#ifdef WITH_DEBUG
-    printf("xsltp_destroy: destroy\n");
-#endif
+    xsltp_log_debug0("destroy");
 
     if (processor != NULL) {
         xsltp_stylesheet_parser_destroy(processor->stylesheet_parser);
@@ -374,9 +354,7 @@ xsltp_destroy(xsltp_t *processor)
 void
 xsltp_global_init(void)
 {
-#ifdef WITH_DEBUG
-    printf("xsltp_global_init: init\n");
-#endif
+    xsltp_log_debug0("init");
 
 #ifdef HAVE_THREADS
     xsltp_mutex_lock(&xsltp_global_init_lock);
@@ -410,9 +388,7 @@ xsltp_global_init(void)
 void
 xsltp_global_cleanup(void)
 {
-#ifdef WITH_DEBUG
-    printf("xsltp_global_cleanup: cleanup\n");
-#endif
+    xsltp_log_debug0("cleanup");
 
 #ifdef HAVE_THREADS
     xsltp_mutex_lock(&xsltp_global_init_lock);

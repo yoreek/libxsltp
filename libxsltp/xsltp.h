@@ -8,6 +8,8 @@
 #include <libxslt/documents.h>
 #include <libxslt/imports.h>
 #include <libxslt/xsltutils.h>
+#include <libxslt/keys.h>
+#include <libxslt/extensions.h>
 #ifdef HAVE_LIBEXSLT
 #include <libexslt/exslt.h>
 #endif
@@ -167,11 +169,13 @@ xsltp_stylesheet_t *xsltp_stylesheet_parser_create_stylesheet(char *uri);
 void xsltp_stylesheet_parser_destroy_stylesheet(xsltp_stylesheet_t *xsltp_stylesheet);
 int xsltp_stylesheet_parser_stylesheet_is_updated(xsltp_stylesheet_t *xsltp_stylesheet);
 xsltp_stylesheet_t *xsltp_stylesheet_parser_parse_file(xsltp_stylesheet_parser_t *stylesheet_parser, char *uri);
+void xsltp_stylesheet_parser_destroy_extra_info(xsltp_stylesheet_t *xsltp_stylesheet);
+xsltp_bool_t xsltp_stylesheet_parser_create_extra_info(xsltp_stylesheet_t *xsltp_stylesheet);
 
 xsltp_stylesheet_parser_cache_t *xsltp_stylesheet_parser_cache_create(void);
 void xsltp_stylesheet_parser_cache_destroy(xsltp_stylesheet_parser_cache_t *stylesheet_parser_cache);
 xsltp_stylesheet_t *xsltp_stylesheet_parser_cache_lookup(xsltp_stylesheet_parser_cache_t *stylesheet_parser_cache, char *uri);
-void xsltp_stylesheet_parser_cache_clean(xsltp_stylesheet_parser_cache_t *stylesheet_parser_cache);
+void xsltp_stylesheet_parser_cache_clean(xsltp_stylesheet_parser_cache_t *stylesheet_parser_cache, xsltp_keys_cache_t *keys_cache);
 
 xsltp_document_parser_t *xsltp_document_parser_create(xsltp_t *processor);
 void xsltp_document_parser_destroy(xsltp_document_parser_t *document_parser);
@@ -181,7 +185,7 @@ void xsltp_document_parser_destroy_document(xsltp_document_t *xsltp_document);
 xsltp_document_parser_cache_t *xsltp_document_parser_cache_create(void);
 void xsltp_document_parser_cache_destroy(xsltp_document_parser_cache_t *cache);
 xsltp_document_t *xsltp_document_parser_cache_lookup(xsltp_document_parser_cache_t *cache, char *uri);
-void xsltp_document_parser_cache_clean(xsltp_document_parser_cache_t *cache);
+void xsltp_document_parser_cache_clean(xsltp_document_parser_cache_t *cache, xsltp_keys_cache_t *keys_cache);
 
 #define XSLT_KEYS_LIST_FREE_NONE 0
 #define XSLT_KEYS_LIST_FREE_DATA 1

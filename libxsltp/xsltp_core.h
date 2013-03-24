@@ -36,8 +36,10 @@ time_t xsltp_last_modify(const char *file_name);
 #ifdef HAVE_OPENSSL
 #include "xsltp_md5.h"
 #endif
+
 #include "xsltp_string.h"
 #include "xsltp_list.h"
+#include "xsltp_log.h"
 
 #ifdef HAVE_THREADS
 #include "xsltp_thread.h"

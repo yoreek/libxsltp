@@ -14,5 +14,6 @@ libxsltp_1_0_la_SOURCES =                   \
             xsltp_profiler.c                \
             xsltp_core.c                    \
             xsltp_list.c                    \
+            xsltp_log.c                     \
             xsltp_string.c                  \
             xsltp_pthread_thread.c

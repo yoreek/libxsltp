@@ -7,14 +7,15 @@ xsltp_document_parser_check_if_modify(xsltp_document_t *xsltp_document)
 {
     xmlDocPtr                        doc;
     xsltp_xml_document_extra_info_t *doc_extra_info;
+    time_t                           cur_mtime;
 
     doc            = xsltp_document->doc;
     doc_extra_info = doc->_private;
 
-    if (doc_extra_info->mtime != xsltp_last_modify(doc->URL)) {
-#ifdef WITH_DEBUG
-        printf("xsltp_document_parser_check_if_modify: document is updated: %s mtime_old: %d mtime: %d\n", doc->URL, (int) doc_extra_info->mtime, (int) xsltp_last_modify(doc->URL));
-#endif
+    cur_mtime = xsltp_last_modify((const char *) doc->URL);
+    if (doc_extra_info->mtime != cur_mtime) {
+        xsltp_log_debug3("document is updated: %s mtime_old: %d mtime: %d", doc->URL, (int) doc_extra_info->mtime, (int) cur_mtime);
+
         return 1;
     }
 
@@ -44,9 +45,7 @@ xsltp_document_parser_cache_create(void)
 {
     xsltp_document_parser_cache_t *document_parser_cache;
 
-#ifdef WITH_DEBUG
-    printf("xsltp_document_parser_cache_create: create cache\n");
-#endif
+    xsltp_log_debug0("create cache");
 
     if ((document_parser_cache = xsltp_malloc(sizeof(xsltp_document_parser_cache_t))) == NULL) {
         return NULL;
@@ -77,9 +76,7 @@ xsltp_document_parser_cache_free(xsltp_list_t *list)
 void
 xsltp_document_parser_cache_destroy(xsltp_document_parser_cache_t *document_parser_cache)
 {
-#ifdef WITH_DEBUG
-    printf("xsltp_document_parser_cache_destroy: destroy cache\n");
-#endif
+    xsltp_log_debug0("destroy cache");
 
     if (document_parser_cache != NULL) {
 #ifdef HAVE_THREADS
@@ -105,9 +102,7 @@ xsltp_document_parser_cache_lookup(xsltp_document_parser_cache_t *document_parse
     xsltp_list_t          *el;
     int               is_found = 0;
 
-#ifdef WITH_DEBUG
-    printf("xsltp_document_parser_cache_lookup: lookup document %s in cache\n", uri);
-#endif
+    xsltp_log_debug1("lookup document %s in cache", uri);
 
 #ifdef HAVE_THREADS
     xsltp_rwlock_wrlock(document_parser_cache->cache_lock);
@@ -122,9 +117,8 @@ xsltp_document_parser_cache_lookup(xsltp_document_parser_cache_t *document_parse
 
         if (strcmp(xsltp_document->uri, uri) == 0) {
             if (xsltp_document->expired == 0 && xsltp_document->error == 0) {
-#ifdef WITH_DEBUG
-                printf("xsltp_document_parser_cache_lookup: document %s is found in cache\n", uri);
-#endif
+                xsltp_log_debug1("document %s is found in cache", uri);
+
                 is_found = 1;
                 break;
             }
@@ -139,9 +133,8 @@ xsltp_document_parser_cache_lookup(xsltp_document_parser_cache_t *document_parse
         xsltp_document = xsltp_document_parser_create_document(uri);
         xsltp_list_insert_tail(&document_parser_cache->list, (xsltp_list_t *) xsltp_document);
     } else if (xsltp_document->doc == NULL && xsltp_document_old != NULL) {
-#ifdef WITH_DEBUG
-        printf("xsltp_document_parser_cache_lookup: document(expired) %s is found in cache\n", uri);
-#endif
+        xsltp_log_debug1("document(expired) %s is found in cache", uri);
+
         xsltp_document = xsltp_document_old;
     }
 
@@ -152,9 +145,8 @@ xsltp_document_parser_cache_lookup(xsltp_document_parser_cache_t *document_parse
     return xsltp_document;
 }
 
-/*
 void
-xsltp_document_parser_cache_clean(xsltp_document_parser_cache_t *document_parser_cache)
+xsltp_document_parser_cache_clean(xsltp_document_parser_cache_t *document_parser_cache, xsltp_keys_cache_t *keys_cache)
 {
     xsltp_document_t           *xsltp_document;
     xsltp_xml_document_extra_info_t *doc_extra_info;
@@ -162,12 +154,11 @@ xsltp_document_parser_cache_clean(xsltp_document_parser_cache_t *document_parser
     time_t                      now;
     xsltp_list_t               *el;
 
-#ifdef WITH_DEBUG
-    printf("xsltp_document_parser_cache_clean: start\n");
-#endif
+    xsltp_log_debug0("start");
 
-    // write lock start
+#ifdef HAVE_THREADS
     xsltp_rwlock_wrlock(document_parser_cache->cache_lock);
+#endif
 
     now = time(NULL);
     el = xsltp_list_first(&document_parser_cache->list);
@@ -180,34 +171,31 @@ xsltp_document_parser_cache_clean(xsltp_document_parser_cache_t *document_parser
             xsltp_document->expired == 0 &&
             xsltp_document_parser_check_if_modify(xsltp_document)
         ) {
-#ifdef WITH_DEBUG
-            printf("xsltp_document_parser_cache_clean: document %s is expired\n", xsltp_document->uri);
-#endif
+            xsltp_log_debug1("document %s is expired", xsltp_document->uri);
+
             xsltp_document->expired = now;
-            xsltp_keys_cache_expire(NULL, 0, xsltp_document->uri, doc_extra_info->mtime);
+            xsltp_keys_cache_expire(keys_cache, NULL, 0, xsltp_document->uri, doc_extra_info->mtime);
         }
 
         if (
             xsltp_document->expired != 0 &&
             (now - xsltp_document->expired) > 0
         ) {
-            // clean
+            /* clean */
             xsltp_list_remove(el);
             el = xsltp_list_next(el);
-#ifdef WITH_DEBUG
-            printf("xsltp_document_parser_cache_clean: free document %s\n", xsltp_document->uri);
-#endif
-            xsltp_document_free(xsltp_document);
+
+            xsltp_log_debug1("free document %s", xsltp_document->uri);
+
+            xsltp_document_parser_destroy_document(xsltp_document);
         } else {
             el = xsltp_list_next(el);
         }
     }
 
-    // write lock finish
+#ifdef HAVE_THREADS
     xsltp_rwlock_unlock(document_parser_cache->cache_lock);
-
-#ifdef WITH_DEBUG
-    printf("xsltp_document_parser_cache_clean: end\n");
 #endif
+
+    xsltp_log_debug0("end");
 }
-*/

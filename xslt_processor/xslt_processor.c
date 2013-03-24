@@ -9,7 +9,7 @@
 #include <libxsltp/xsltp.h>
 
 int run(char *stylesheet, char *xml) {
-    xmlDocPtr       xml_doc, result_doc;
+    xmlDocPtr       xml_doc;
     xsltp_t        *processor;
     xsltp_result_t *result;
     char           *buf;
@@ -19,7 +19,7 @@ int run(char *stylesheet, char *xml) {
     for ( ;; ) {
         processor = xsltp_create();
         if (processor == NULL) {
-            printf("Can't to create processor");
+            perror("Can't to create processor");
             status = -1;
             break;
         }
@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
     int status;
 
     if (argc <= 2) {
-        printf("Usage: xslt_processor <stylesheet> <xml>\n");
+        perror("Usage: xslt_processor <stylesheet> <xml>");
         return -1;
     }
 

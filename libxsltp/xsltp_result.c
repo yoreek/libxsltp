@@ -15,9 +15,7 @@ xsltp_result_create(xsltp_t *processor)
 {
     xsltp_result_t *result;
 
-#ifdef WITH_DEBUG
-    printf("xsltp_result_create: create a result\n");
-#endif
+    xsltp_log_debug0("create a result");
 
     if ((result = xsltp_malloc(sizeof(xsltp_result_t))) == NULL) {
         return NULL;
@@ -53,9 +51,7 @@ xsltp_result_save_to_string(xsltp_result_t *result, char **buf, int *buf_len)
 void
 xsltp_result_destroy(xsltp_result_t *result)
 {
-#ifdef WITH_DEBUG
-    printf("xsltp_result_destroy: destroy\n");
-#endif
+    xsltp_log_debug0("destroy");
 
     if (result != NULL) {
         if (result->doc != NULL) {
