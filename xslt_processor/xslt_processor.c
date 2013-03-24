@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
     int status;
 
     if (argc <= 2) {
-        perror("Usage: xslt_processor <stylesheet> <xml>");
+        printf("Usage: xslt_processor <stylesheet> <xml>\n");
         return -1;
     }
 
