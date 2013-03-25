@@ -205,7 +205,7 @@ xsltp_transform(xsltp_t *processor,
 
         if (profiler_info != NULL) {
             xsltp_profiler_result_update(profiler_result, xsltp_stylesheet,
-                                         params, spent, result_doc, profiler_info);
+                                         params, spent, doc, profiler_info);
 
             xmlFreeDoc(profiler_info);
         }
