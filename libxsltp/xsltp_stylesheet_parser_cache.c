@@ -180,7 +180,7 @@ void xsltp_stylesheet_parser_cache_clean(xsltp_stylesheet_parser_cache_t *styles
             xsltp_log_debug1("stylesheet %s is expired", xsltp_stylesheet->uri);
 
             xsltp_stylesheet->expired = now;
-            xsltp_keys_cache_expire(keys_cache, xsltp_stylesheet->uri, xsltp_stylesheet->mtime, NULL, 0);
+            xsltp_keys_cache_expire(keys_cache, xsltp_stylesheet->uri, xsltp_stylesheet->created, NULL, 0);
         }
 
         if (

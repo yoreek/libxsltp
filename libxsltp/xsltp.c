@@ -42,7 +42,7 @@ xsltp_backup_keys(xsltp_t *processor,
             xsltp_log_debug1("document %s", doc->URL);
 
             xsltp_keys_cache_put(processor->keys_cache, xsltp_stylesheet->uri,
-                xsltp_stylesheet->mtime, (char *) doc->URL, doc_extra_info->mtime,
+                xsltp_stylesheet->created, (char *) doc->URL, doc_extra_info->mtime,
                 xslt_document);
         }
         else {
@@ -68,7 +68,7 @@ xsltp_restore_keys(xsltp_t *processor,
     }
 
     xsltp_keys_cache_get(processor->keys_cache, &xsltp_keys_list,
-        xsltp_stylesheet->uri, xsltp_stylesheet->mtime);
+        xsltp_stylesheet->uri, xsltp_stylesheet->created);
 
     for (
         el  = xsltp_list_first(&xsltp_keys_list);

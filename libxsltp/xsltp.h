@@ -31,7 +31,7 @@ struct xsltp_stylesheet {
     xsltStylesheetPtr                stylesheet;
     xsltDocumentPtr                  doc_list;
     time_t                           expired;
-    time_t                           mtime;
+    time_t                           created;
     int                              creating;
     int                              error;
 };

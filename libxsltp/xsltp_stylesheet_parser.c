@@ -65,8 +65,8 @@ xsltp_stylesheet_parser_create_stylesheet(char *uri)
     }
     memset(xsltp_stylesheet, 0, sizeof(xsltp_stylesheet_t));
 
-    xsltp_stylesheet->uri   = strdup(uri);
-    xsltp_stylesheet->mtime = time(NULL);
+    xsltp_stylesheet->uri     = strdup(uri);
+    xsltp_stylesheet->created = time(NULL);
 
     return xsltp_stylesheet;
 }
