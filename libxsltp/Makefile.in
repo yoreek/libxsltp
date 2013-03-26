@@ -54,7 +54,10 @@ host_triplet = @host@
 subdir = libxsltp
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -90,13 +93,14 @@ am__uninstall_files_from_dir = { \
   }
 am__installdirs = "$(DESTDIR)$(libdir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
-libxsltp_1_0_la_LIBADD =
-am_libxsltp_1_0_la_OBJECTS = xsltp.lo xsltp_result.lo \
+libxsltp_la_LIBADD =
+am_libxsltp_la_OBJECTS = xsltp.lo xsltp_result.lo \
 	xsltp_document_parser.lo xsltp_document_parser_cache.lo \
 	xsltp_stylesheet_parser.lo xsltp_stylesheet_parser_cache.lo \
-	xsltp_keys_cache.lo xsltp_core.lo xsltp_list.lo \
-	xsltp_string.lo xsltp_pthread_thread.lo
-libxsltp_1_0_la_OBJECTS = $(am_libxsltp_1_0_la_OBJECTS)
+	xsltp_keys_cache.lo xsltp_profiler.lo xsltp_core.lo \
+	xsltp_list.lo xsltp_log.lo xsltp_string.lo \
+	xsltp_pthread_thread.lo
+libxsltp_la_OBJECTS = $(am_libxsltp_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -110,8 +114,8 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(libxsltp_1_0_la_SOURCES)
-DIST_SOURCES = $(libxsltp_1_0_la_SOURCES)
+SOURCES = $(libxsltp_la_SOURCES)
+DIST_SOURCES = $(libxsltp_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -122,7 +126,6 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
-AM_CXXFLAGS = @AM_CXXFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -156,6 +159,9 @@ LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
+LIBXSLT_CFLAGS = @LIBXSLT_CFLAGS@
+LIBXSLT_LIBS = @LIBXSLT_LIBS@
+LIBXSLT_REQUIRED_VERSION = @LIBXSLT_REQUIRED_VERSION@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
@@ -166,6 +172,9 @@ NM = @NM@
 NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
+OPENSSL_CPPFLAGS = @OPENSSL_CPPFLAGS@
+OPENSSL_LDFLAGS = @OPENSSL_LDFLAGS@
+OPENSSL_LIBS = @OPENSSL_LIBS@
 OTOOL = @OTOOL@
 OTOOL64 = @OTOOL64@
 PACKAGE = @PACKAGE@
@@ -181,7 +190,11 @@ SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
+THREAD_LIBS = @THREAD_LIBS@
 VERSION = @VERSION@
+WITH_OPENSSL = @WITH_OPENSSL@
+WITH_THREADS = @WITH_THREADS@
+XSLT_CONFIG = @XSLT_CONFIG@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -234,10 +247,11 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-INCLUDES = -I$(top_srcdir) -I/usr/include/libxml2
-AM_LDFLAGS = -lxslt -lexslt -lxml2 -lpthread -lssl -L/usr/local/lib
-lib_LTLIBRARIES = libxsltp-1.0.la
-libxsltp_1_0_la_SOURCES = \
+AM_CPPFLAGS = -I$(top_srcdir)
+AM_CFLAGS = $(LIBXSLT_CFLAGS) $(OPENSSL_CFLAGS)
+AM_LDFLAGS = $(LIBXSLT_LIBS) $(THREAD_LIBS) $(OPENSSL_LIBS)
+lib_LTLIBRARIES = libxsltp.la
+libxsltp_la_SOURCES = \
             xsltp.c                         \
             xsltp_result.c                  \
             xsltp_document_parser.c         \
@@ -245,8 +259,10 @@ libxsltp_1_0_la_SOURCES = \
             xsltp_stylesheet_parser.c       \
             xsltp_stylesheet_parser_cache.c \
             xsltp_keys_cache.c              \
+            xsltp_profiler.c                \
             xsltp_core.c                    \
             xsltp_list.c                    \
+            xsltp_log.c                     \
             xsltp_string.c                  \
             xsltp_pthread_thread.c
 
@@ -316,8 +332,8 @@ clean-libLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-libxsltp-1.0.la: $(libxsltp_1_0_la_OBJECTS) $(libxsltp_1_0_la_DEPENDENCIES) $(EXTRA_libxsltp_1_0_la_DEPENDENCIES) 
-	$(LINK) -rpath $(libdir) $(libxsltp_1_0_la_OBJECTS) $(libxsltp_1_0_la_LIBADD) $(LIBS)
+libxsltp.la: $(libxsltp_la_OBJECTS) $(libxsltp_la_DEPENDENCIES) $(EXTRA_libxsltp_la_DEPENDENCIES) 
+	$(LINK) -rpath $(libdir) $(libxsltp_la_OBJECTS) $(libxsltp_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -331,6 +347,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_document_parser_cache.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_keys_cache.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_list.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_log.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_profiler.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_pthread_thread.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_result.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_string.Plo@am__quote@

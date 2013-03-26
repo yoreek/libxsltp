@@ -1,6 +1,8 @@
 #include "xsltp_config.h"
 #include "xsltp_core.h"
 
+#ifdef HAVE_THREADS
+
 xsltp_mutex_t *xsltp_mutex_init(void) {
 	xsltp_mutex_t *mutex;
 
@@ -117,3 +119,5 @@ void xsltp_rwlock_unlock(xsltp_rwlock_t *rwlock) {
 		perror("RWLock unlock failed");
 	}
 }
+
+#endif /* HAVE_THREADS */

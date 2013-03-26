@@ -25,12 +25,10 @@ xsltp_keys_cache_create_keys(char *stylesheet_uri, time_t stylesheet_mtime,
         xsltp_keys->xslt_document_not_computed_keys = xslt_document;
     }
 
-#ifdef WITH_DEBUG
-    printf("xsltp_keys_cache_create_keys: stylesheet %s %d, document %s %d\n",
+    xsltp_log_debug4("stylesheet %s %d, document %s %d",
         stylesheet_uri, (int) stylesheet_mtime,
         document_uri, (int) document_mtime
     );
-#endif
 
     return xsltp_keys;
 }
@@ -38,9 +36,11 @@ xsltp_keys_cache_create_keys(char *stylesheet_uri, time_t stylesheet_mtime,
 static xsltp_bool_t
 xsltp_keys_cache_init(xsltp_t *processor, xsltp_keys_cache_t *keys_cache)
 {
+#ifdef HAVE_THREADS
     if ((keys_cache->cache_lock = xsltp_rwlock_init()) == NULL) {
         return FALSE;
     }
+#endif
 
     keys_cache->processor = processor;
 
@@ -54,9 +54,7 @@ xsltp_keys_cache_create(xsltp_t *processor)
 {
     xsltp_keys_cache_t *keys_cache;
 
-#ifdef WITH_DEBUG
-    printf("xsltp_keys_cache_create: create cache\n");
-#endif
+    xsltp_log_debug0("create cache");
 
     if ((keys_cache = xsltp_malloc(sizeof(xsltp_keys_cache_t))) == NULL) {
         return NULL;
@@ -76,15 +74,13 @@ xsltp_keys_cache_free_keys(xsltp_keys_t *xsltp_keys, int type)
 {
     if (type & XSLT_KEYS_LIST_FREE_KEYS) {
         if (xsltp_keys->xslt_document != NULL) {
-#ifdef WITH_DEBUG
-            printf("xsltp_keys_cache_free_keys: free document keys %p\n", xsltp_keys->xslt_document);
-#endif
+            xsltp_log_debug1("free document keys %p", xsltp_keys->xslt_document);
+
             xsltFreeDocumentKeys(xsltp_keys->xslt_document);
         }
         if (xsltp_keys->xslt_document_not_computed_keys != NULL) {
-#ifdef WITH_DEBUG
-            printf("xsltp_keys_cache_free_keys: free document keys (wo computed) %p\n", xsltp_keys->xslt_document_not_computed_keys);
-#endif
+            xsltp_log_debug1("free document keys (wo computed) %p", xsltp_keys->xslt_document_not_computed_keys);
+
             xsltFreeDocumentKeys(xsltp_keys->xslt_document_not_computed_keys);
         }
     }
@@ -124,15 +120,18 @@ xsltp_keys_cache_free_keys_list(xsltp_list_t *xsltp_keys_list, int type)
 void
 xsltp_keys_cache_destroy(xsltp_keys_cache_t *keys_cache)
 {
-#ifdef WITH_DEBUG
-    printf("xsltp_keys_cache_destroy: destroy\n");
-#endif
+    xsltp_log_debug0("destroy");
+
+#ifdef HAVE_THREADS
     xsltp_rwlock_wrlock(keys_cache->cache_lock);
+#endif
 
     xsltp_keys_cache_free_keys_list(&keys_cache->list, XSLT_KEYS_LIST_FREE_KEYS | XSLT_KEYS_LIST_FREE_DATA);
 
+#ifdef HAVE_THREADS
     xsltp_rwlock_unlock(keys_cache->cache_lock);
     xsltp_rwlock_destroy(keys_cache->cache_lock);
+#endif
 }
 
 static xsltp_keys_t *
@@ -158,9 +157,8 @@ xsltp_keys_cache_lookup(xsltp_keys_cache_t *keys_cache, char *stylesheet_uri,
         if (xsltp_keys->document_mtime != document_mtime)
             continue;
 
-#ifdef WITH_DEBUG
-        printf("xsltp_keys_cache_lookup: keys for document %s is found in the cache\n", document_uri);
-#endif
+        xsltp_log_debug1("keys for document %s is found in the cache", document_uri);
+
         return xsltp_keys;
     }
 
@@ -174,13 +172,12 @@ xsltp_keys_cache_put(xsltp_keys_cache_t *keys_cache, char *stylesheet_uri,
 {
     xsltp_keys_t *xsltp_keys;
 
-#ifdef WITH_DEBUG
-    printf("xsltp_keys_cache_put: stylesheet '%s', document '%s'\n", stylesheet_uri, document_uri);
-    printf("xsltp_keys_cache_put: xslt_document %p, xslt_document->doc %p\n", xslt_document, xslt_document->doc);
-#endif
+    xsltp_log_debug2("stylesheet '%s', document '%s'", stylesheet_uri, document_uri);
+    xsltp_log_debug2("xslt_document %p, xslt_document->doc %p", xslt_document, xslt_document->doc);
 
-    /* write lock start */
+#ifdef HAVE_THREADS
     xsltp_rwlock_wrlock(keys_cache->cache_lock);
+#endif
 
     xsltp_keys = xsltp_keys_cache_lookup(
         keys_cache, stylesheet_uri, stylesheet_mtime, document_uri, document_mtime
@@ -198,8 +195,9 @@ xsltp_keys_cache_put(xsltp_keys_cache_t *keys_cache, char *stylesheet_uri,
 
     }
 
-    /* write lock finish */
+#ifdef HAVE_THREADS
     xsltp_rwlock_unlock(keys_cache->cache_lock);
+#endif
 }
 
 void
@@ -209,27 +207,22 @@ xsltp_keys_cache_get(xsltp_keys_cache_t *keys_cache, xsltp_list_t *keys_list,
     xsltp_keys_t *xsltp_keys, *xsltp_keys_dup;
     xsltp_list_t *el;
 
-#ifdef WITH_DEBUG
-    printf("xsltp_keys_cache_get: stylesheet %s %d\n", stylesheet_uri, (int) stylesheet_mtime);
-#endif
+    xsltp_log_debug2("stylesheet %s %d", stylesheet_uri, (int) stylesheet_mtime);
 
     xsltp_list_init(keys_list);
 
-#ifdef WITH_DEBUG
-    printf("xsltp_keys_cache_get: init keys list\n");
-#endif
+    xsltp_log_debug0("init keys list");
 
-    /* read lock start */
+#ifdef HAVE_THREADS
     xsltp_rwlock_rdlock(keys_cache->cache_lock);
-
-#ifdef WITH_DEBUG
-    printf("xsltp_keys_cache_get: lock\n");
 #endif
+
+    xsltp_log_debug0("lock");
 
     for (el = xsltp_list_first(&keys_cache->list); el != xsltp_list_end(&keys_cache->list); el = xsltp_list_next(el)) {
         xsltp_keys = (xsltp_keys_t *) el;
 
-        /*printf("s: %s\n", xsltp_keys->stylesheet_uri);*/
+        /*printf("s: %s", xsltp_keys->stylesheet_uri);*/
 
         if (xsltp_keys->expired != 0)
             continue;
@@ -244,17 +237,14 @@ xsltp_keys_cache_get(xsltp_keys_cache_t *keys_cache, xsltp_list_t *keys_list,
         memcpy(xsltp_keys_dup, xsltp_keys, sizeof(xsltp_keys_t));
         xsltp_list_insert_tail(keys_list, (xsltp_list_t *) xsltp_keys_dup);
 
-#ifdef WITH_DEBUG
-        printf("xsltp_keys_cache_get: keys %s for stylesheet %s is found in cache\n", xsltp_keys->document_uri, stylesheet_uri);
-#endif
+        xsltp_log_debug2("keys %s for stylesheet %s is found in cache", xsltp_keys->document_uri, stylesheet_uri);
     }
 
-    /* write lock finish */
+#ifdef HAVE_THREADS
     xsltp_rwlock_unlock(keys_cache->cache_lock);
-
-#ifdef WITH_DEBUG
-    printf("xsltp_keys_cache_get: done\n");
 #endif
+
+    xsltp_log_debug0("done");
 }
 
 void
@@ -265,19 +255,16 @@ xsltp_keys_cache_expire(xsltp_keys_cache_t *keys_cache, char *stylesheet_uri,
     xsltp_list_t *el;
     time_t        now = time(NULL);
 
-#ifdef WITH_DEBUG
-    printf("xsltp_keys_cache_expire: stylesheet %s %d, document %p\n", stylesheet_uri, (int) stylesheet_mtime, document_uri);
-#endif
+    xsltp_log_debug3("stylesheet %s %d, document %p", stylesheet_uri, (int) stylesheet_mtime, document_uri);
 
-    /* write lock start */
+#ifdef HAVE_THREADS
     xsltp_rwlock_wrlock(keys_cache->cache_lock);
+#endif
 
     for (el = xsltp_list_first(&keys_cache->list); el != xsltp_list_end(&keys_cache->list); el = xsltp_list_next(el)) {
         xsltp_keys = (xsltp_keys_t *) el;
 
-#ifdef WITH_DEBUG
-        printf("xsltp_keys_cache_expire: search stylesheet %s %d, document %s\n", xsltp_keys->stylesheet_uri, (int) xsltp_keys->stylesheet_mtime, xsltp_keys->document_uri);
-#endif
+        xsltp_log_debug3("search stylesheet %s %d, document %s", xsltp_keys->stylesheet_uri, (int) xsltp_keys->stylesheet_mtime, xsltp_keys->document_uri);
 
         if (xsltp_keys->expired != 0)
             continue;
@@ -292,27 +279,24 @@ xsltp_keys_cache_expire(xsltp_keys_cache_t *keys_cache, char *stylesheet_uri,
 
         xsltp_keys->expired = now;
 
-#ifdef WITH_DEBUG
-        printf("xsltp_keys_cache_expire: expired stylesheet %s, document %s\n", xsltp_keys->stylesheet_uri, xsltp_keys->document_uri);
-#endif
+        xsltp_log_debug2("expired stylesheet %s, document %s", xsltp_keys->stylesheet_uri, xsltp_keys->document_uri);
     }
 
-    /* write lock finish */
+#ifdef HAVE_THREADS
     xsltp_rwlock_unlock(keys_cache->cache_lock);
+#endif
 }
 
-/*
 void xsltp_keys_cache_clean(xsltp_keys_cache_t *keys_cache) {
     xsltp_keys_t *xsltp_keys;
     xsltp_list_t *el;
     time_t        now;
 
-#ifdef WITH_DEBUG
-    printf("xsltp_keys_cache_clean: start\n");
-#endif
+    xsltp_log_debug0("start");
 
-    // write lock start
+#ifdef HAVE_THREADS
     xsltp_rwlock_wrlock(keys_cache->cache_lock);
+#endif
 
     now = time(NULL);
     el = xsltp_list_first(&keys_cache->list);
@@ -323,23 +307,20 @@ void xsltp_keys_cache_clean(xsltp_keys_cache_t *keys_cache) {
             xsltp_keys->expired != 0 &&
             (now - xsltp_keys->expired) > 0
         ) {
-            // clean
+            /* clean */
             xsltp_list_remove(el);
             el = xsltp_list_next(el);
-#ifdef WITH_DEBUG
-            printf("xsltp_keys_cache_clean: free keys for document %s\n", xsltp_keys->document_uri);
-#endif
+            xsltp_log_debug1("free keys for document %s", xsltp_keys->document_uri);
+
             xsltp_keys_cache_free_keys(xsltp_keys, XSLT_KEYS_LIST_FREE_KEYS | XSLT_KEYS_LIST_FREE_DATA);
         } else {
             el = xsltp_list_next(el);
         }
     }
 
-    // write lock finish
+#ifdef HAVE_THREADS
     xsltp_rwlock_unlock(keys_cache->cache_lock);
-
-#ifdef WITH_DEBUG
-    printf("xsltp_keys_cache_clean: end\n");
 #endif
+
+    xsltp_log_debug0("end");
 }
-*/

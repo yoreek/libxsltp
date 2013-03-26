@@ -17,6 +17,7 @@
 #include <sys/stat.h>
 #include <libxml/parser.h>
 #include <signal.h>
+#include <time.h>
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 1024

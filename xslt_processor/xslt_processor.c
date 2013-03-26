@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include <time.h>
 #include <errno.h>
 
@@ -10,7 +9,7 @@
 #include <libxsltp/xsltp.h>
 
 int run(char *stylesheet, char *xml) {
-    xmlDocPtr       xml_doc, result_doc;
+    xmlDocPtr       xml_doc;
     xsltp_t        *processor;
     xsltp_result_t *result;
     char           *buf;
@@ -20,7 +19,7 @@ int run(char *stylesheet, char *xml) {
     for ( ;; ) {
         processor = xsltp_create();
         if (processor == NULL) {
-            printf("Can't to create processor");
+            perror("Can't to create processor");
             status = -1;
             break;
         }
@@ -34,7 +33,7 @@ int run(char *stylesheet, char *xml) {
             }
 
             for ( ;; ) {
-                result = xsltp_transform(processor, stylesheet, xml_doc, NULL);
+                result = xsltp_transform(processor, stylesheet, xml_doc, NULL, NULL);
                 if (result == NULL) {
                     status = -1;
                     perror("Error to transform");

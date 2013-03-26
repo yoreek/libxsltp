@@ -1,9 +1,9 @@
-INCLUDES = -I$(top_srcdir) -I/usr/include/libxml2
+AM_CPPFLAGS = -I$(top_srcdir)
+AM_CFLAGS = $(LIBXSLT_CFLAGS) $(OPENSSL_CFLAGS)
+AM_LDFLAGS = $(LIBXSLT_LIBS) $(THREAD_LIBS) $(OPENSSL_LIBS)
 
-AM_LDFLAGS = -lxslt -lexslt -lxml2 -lpthread -lssl -L/usr/local/lib
-
-lib_LTLIBRARIES = libxsltp-1.0.la
-libxsltp_1_0_la_SOURCES =                   \
+lib_LTLIBRARIES = libxsltp.la
+libxsltp_la_SOURCES =                       \
             xsltp.c                         \
             xsltp_result.c                  \
             xsltp_document_parser.c         \
@@ -11,7 +11,9 @@ libxsltp_1_0_la_SOURCES =                   \
             xsltp_stylesheet_parser.c       \
             xsltp_stylesheet_parser_cache.c \
             xsltp_keys_cache.c              \
+            xsltp_profiler.c                \
             xsltp_core.c                    \
             xsltp_list.c                    \
+            xsltp_log.c                     \
             xsltp_string.c                  \
             xsltp_pthread_thread.c

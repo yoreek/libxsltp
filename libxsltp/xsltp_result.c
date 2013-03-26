@@ -15,9 +15,7 @@ xsltp_result_create(xsltp_t *processor)
 {
     xsltp_result_t *result;
 
-#ifdef WITH_DEBUG
-    printf("xsltp_result_create: create a result\n");
-#endif
+    xsltp_log_debug0("create a result");
 
     if ((result = xsltp_malloc(sizeof(xsltp_result_t))) == NULL) {
         return NULL;
@@ -47,19 +45,25 @@ xsltp_result_save_to_file(xsltp_result_t *result, char *filename)
 int
 xsltp_result_save_to_string(xsltp_result_t *result, char **buf, int *buf_len)
 {
-    return xsltSaveResultToString(buf, buf_len, result->doc, result->xsltp_stylesheet->stylesheet);
+    return xsltSaveResultToString((xmlChar **) buf, buf_len, result->doc, result->xsltp_stylesheet->stylesheet);
 }
 
 void
 xsltp_result_destroy(xsltp_result_t *result)
 {
-#ifdef WITH_DEBUG
-    printf("xsltp_result_destroy: destroy\n");
-#endif
+    xsltp_log_debug0("destroy");
 
     if (result != NULL) {
         if (result->doc != NULL) {
             xmlFreeDoc(result->doc);
+        }
+
+        if (!result->processor->stylesheet_caching_enable) {
+            xsltp_stylesheet_parser_destroy_stylesheet(result->xsltp_stylesheet);
+        }
+
+        if (result->profiler_result != NULL) {
+            xsltp_profiler_result_destroy(result->profiler_result);
         }
 
         xsltp_free(result);
