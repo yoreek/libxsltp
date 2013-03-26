@@ -147,6 +147,8 @@ void xsltp_destroy(xsltp_t *processor);
 xsltp_result_t *xsltp_transform(xsltp_t *processor,
     char *stylesheet_uri, xmlDocPtr doc, const char **params, xsltp_profiler_result_t *profiler_result);
 xsltp_result_t *xsltp_transform_multi(xsltp_t *processor, xsltp_transform_ctxt_t *transform_ctxt, xmlDocPtr doc);
+void xsltp_global_init(void);
+void xsltp_global_cleanup(void);
 
 xsltp_result_t *xsltp_result_create(xsltp_t *processor);
 void xsltp_result_destroy(xsltp_result_t *result);

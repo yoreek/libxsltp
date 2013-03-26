@@ -251,7 +251,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)
-AM_CFLAGS = $(LIBXSLT_CFLAGS) $(OPENSSL_CFLAGS)
+AM_CFLAGS = -fPIC $(LIBXSLT_CFLAGS) $(OPENSSL_CFLAGS)
 AM_LDFLAGS = $(LIBXSLT_LIBS) $(THREAD_LIBS) $(OPENSSL_LIBS)
 lib_LTLIBRARIES = libxsltp.la
 libxsltp_la_SOURCES = \
@@ -293,9 +293,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign libxsltp/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu libxsltp/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign libxsltp/Makefile
+	  $(AUTOMAKE) --gnu libxsltp/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
