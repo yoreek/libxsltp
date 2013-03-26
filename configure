@@ -12320,6 +12320,41 @@ fi
 
 fi
 
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <libxslt/xsltInternals.h>
+
+int
+main ()
+{
+
+    xsltTransformContext ctxt;
+    ctxt.maxTemplateDepth = 1000;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  LIBXSLT_GLOBAL_MAX_DEPTH=no
+else
+  LIBXSLT_GLOBAL_MAX_DEPTH=yes
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+if test "$LIBXSLT_GLOBAL_MAX_DEPTH" = "yes"; then
+
+$as_echo "#define USE_LIBEXSLT_GLOBAL_MAX_DEPTH /**/" >>confdefs.h
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: LibXSLT global max depth: yes" >&5
+$as_echo "LibXSLT global max depth: yes" >&6; }
+else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: LibXSLT global max depth: no" >&5
+$as_echo "LibXSLT global max depth: no" >&6; }
+fi
+
+
 
 
 

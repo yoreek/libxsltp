@@ -129,7 +129,12 @@ xsltp_apply_stylesheet(xsltp_t *processor, xsltp_stylesheet_t *xsltp_stylesheet,
 
     ctxt = xsltNewTransformContext(xsltp_stylesheet->stylesheet, doc);
     ctxt->_private         = processor;
+
+#ifdef USE_LIBEXSLT_GLOBAL_MAX_DEPTH
+    xsltMaxDepth = processor->stylesheet_max_depth;
+#else
     ctxt->maxTemplateDepth = processor->stylesheet_max_depth;
+#endif
 
     if (profiler_info != NULL && pass == 1) {
         xsltp_reset_profile_info(ctxt);

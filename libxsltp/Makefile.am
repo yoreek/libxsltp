@@ -17,3 +17,14 @@ libxsltp_la_SOURCES =                       \
             xsltp_log.c                     \
             xsltp_string.c                  \
             xsltp_pthread_thread.c
+
+include_HEADERS =                       \
+            xsltp.h                         \
+            xsltp_config.h                  \
+            xsltp_core.h                    \
+            xsltp_linux_config.h            \
+            xsltp_list.h                    \
+            xsltp_log.h                     \
+            xsltp_md5.h                     \
+            xsltp_string.h                  \
+            xsltp_thread.h

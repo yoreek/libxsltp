@@ -172,6 +172,24 @@ if test "$EXSLT" = "yes"; then
             WITH_EXSLT="1"]))
 fi
 
+AC_LINK_IFELSE([AC_LANG_PROGRAM(
+[[
+#include <libxslt/xsltInternals.h>
+]],
+[[
+    xsltTransformContext ctxt;
+    ctxt.maxTemplateDepth = 1000;
+]])],
+[LIBXSLT_GLOBAL_MAX_DEPTH=no],
+[LIBXSLT_GLOBAL_MAX_DEPTH=yes])
+if test "$LIBXSLT_GLOBAL_MAX_DEPTH" = "yes"; then
+    AC_DEFINE([USE_LIBEXSLT_GLOBAL_MAX_DEPTH], [], [Define if LibXSLT using global max depth])
+    AC_MSG_RESULT(LibXSLT global max depth: yes)
+else
+    AC_MSG_RESULT(LibXSLT global max depth: no)
+fi
+
+
 AC_SUBST(XSLT_CONFIG)
 AC_SUBST(LIBXSLT_LIBS)
 AC_SUBST(LIBXSLT_CFLAGS)
