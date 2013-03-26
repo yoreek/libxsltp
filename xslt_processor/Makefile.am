@@ -5,4 +5,4 @@ AM_LDFLAGS = $(LIBXSLT_CFLAGS)
 bin_PROGRAMS = xslt_processor
 xslt_processor = xslt_processor.c
 
-LDADD =  $(top_srcdir)/libxsltp/libxsltp-1.0.la
+LDADD =  $(top_srcdir)/libxsltp/libxsltp.la

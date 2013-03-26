@@ -93,14 +93,14 @@ am__uninstall_files_from_dir = { \
   }
 am__installdirs = "$(DESTDIR)$(libdir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
-libxsltp_1_0_la_LIBADD =
-am_libxsltp_1_0_la_OBJECTS = xsltp.lo xsltp_result.lo \
+libxsltp_la_LIBADD =
+am_libxsltp_la_OBJECTS = xsltp.lo xsltp_result.lo \
 	xsltp_document_parser.lo xsltp_document_parser_cache.lo \
 	xsltp_stylesheet_parser.lo xsltp_stylesheet_parser_cache.lo \
 	xsltp_keys_cache.lo xsltp_profiler.lo xsltp_core.lo \
 	xsltp_list.lo xsltp_log.lo xsltp_string.lo \
 	xsltp_pthread_thread.lo
-libxsltp_1_0_la_OBJECTS = $(am_libxsltp_1_0_la_OBJECTS)
+libxsltp_la_OBJECTS = $(am_libxsltp_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -114,8 +114,8 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(libxsltp_1_0_la_SOURCES)
-DIST_SOURCES = $(libxsltp_1_0_la_SOURCES)
+SOURCES = $(libxsltp_la_SOURCES)
+DIST_SOURCES = $(libxsltp_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -250,8 +250,8 @@ top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)
 AM_CFLAGS = $(LIBXSLT_CFLAGS) $(OPENSSL_CFLAGS)
 AM_LDFLAGS = $(LIBXSLT_LIBS) $(THREAD_LIBS) $(OPENSSL_LIBS)
-lib_LTLIBRARIES = libxsltp-1.0.la
-libxsltp_1_0_la_SOURCES = \
+lib_LTLIBRARIES = libxsltp.la
+libxsltp_la_SOURCES = \
             xsltp.c                         \
             xsltp_result.c                  \
             xsltp_document_parser.c         \
@@ -332,8 +332,8 @@ clean-libLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-libxsltp-1.0.la: $(libxsltp_1_0_la_OBJECTS) $(libxsltp_1_0_la_DEPENDENCIES) $(EXTRA_libxsltp_1_0_la_DEPENDENCIES) 
-	$(LINK) -rpath $(libdir) $(libxsltp_1_0_la_OBJECTS) $(libxsltp_1_0_la_LIBADD) $(LIBS)
+libxsltp.la: $(libxsltp_la_OBJECTS) $(libxsltp_la_DEPENDENCIES) $(EXTRA_libxsltp_la_DEPENDENCIES) 
+	$(LINK) -rpath $(libdir) $(libxsltp_la_OBJECTS) $(libxsltp_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
