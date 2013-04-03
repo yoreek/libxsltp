@@ -6,6 +6,9 @@
 /* Define if <libexslt/exslt.h> is there */
 #undef HAVE_EXSLT_H
 
+/* Use GLIB */
+#undef HAVE_GLIB
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
