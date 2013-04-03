@@ -4,7 +4,7 @@
 
 static void
 xsltp_extension_string_join(xmlXPathParserContextPtr ctxt, int nargs) {
-    xmlChar *ret = NULL, *sep = NULL, *str = NULL, *tmp = NULL;
+    xmlChar *ret = NULL, *sep = NULL, *str = NULL;
     xmlNodeSetPtr nodeSet = NULL;
     int i, j;
 
@@ -28,10 +28,10 @@ xsltp_extension_string_join(xmlXPathParserContextPtr ctxt, int nargs) {
                 ret = str;
             }
             else {
-                tmp = xmlStrcat(str, sep);
-                tmp = xmlStrcat(str, ret);
+                str = xmlStrcat(str, sep);
+                str = xmlStrcat(str, ret);
                 xmlFree(ret);
-                ret = tmp;
+                ret = str;
             }
         }
         else {
@@ -44,14 +44,14 @@ xsltp_extension_string_join(xmlXPathParserContextPtr ctxt, int nargs) {
             for (j = nodeSet->nodeNr - 1; j >= 0; j--) {
                 str = xmlXPathCastNodeToString(nodeSet->nodeTab[j]);
 
-                if (i == 1 && j == 0) {
+                if (i == 1 && j == (nodeSet->nodeNr - 1)) {
                     ret = str;
                 }
                 else {
-                    tmp = xmlStrcat(str, sep);
-                    tmp = xmlStrcat(str, ret);
+                    str = xmlStrcat(str, sep);
+                    str = xmlStrcat(str, ret);
                     xmlFree(ret);
-                    ret = tmp;
+                    ret = str;
                 }
             }
 
