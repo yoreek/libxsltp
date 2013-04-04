@@ -1,12 +1,11 @@
 AC_PREREQ([2.59])
-AC_INIT([XSLT processing library], [0.1], [yoreek@yahoo.com],
+AC_INIT([XSLT processing library], [0.02], [yoreek@yahoo.com],
         [libxsltp], [https://github.com/yoreek/libxsltp/])
 AM_INIT_AUTOMAKE([1.10 -Wall no-define])
 AC_CONFIG_HEADERS([config.h])
 AC_USE_SYSTEM_EXTENSIONS
 
 LIBXSLT_REQUIRED_VERSION=1.1.25
-
 AC_PROG_CC
 LT_INIT([dlopen])
 
@@ -28,6 +27,11 @@ if test x"$debugit" = x"yes"; then
     CFLAGS="-g -Wall -Werror -Wno-uninitialized -O0 -pedantic"
 fi
 AM_CONDITIONAL([WITH_DEBUG], [test x$debug = xtrue])
+
+##########################################################################
+# GLib support
+##########################################################################
+PKG_CHECK_MODULES([GLIB], [glib-3.0], [AC_DEFINE([HAVE_GLIB], [], [Use GLIB])], [WITH_GLIB=no])
 
 ##########################################################################
 # OpenSSL support
@@ -189,11 +193,13 @@ else
     AC_MSG_RESULT(LibXSLT global max depth: no)
 fi
 
-
 AC_SUBST(XSLT_CONFIG)
 AC_SUBST(LIBXSLT_LIBS)
 AC_SUBST(LIBXSLT_CFLAGS)
 
+##########################################################################
+# END
+##########################################################################
 
 AC_SUBST(CFLAGS)
 

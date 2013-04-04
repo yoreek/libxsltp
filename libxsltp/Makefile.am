@@ -1,6 +1,6 @@
 AM_CPPFLAGS = -I$(top_srcdir)
-AM_CFLAGS = -fPIC $(LIBXSLT_CFLAGS) $(OPENSSL_CFLAGS)
-AM_LDFLAGS = $(LIBXSLT_LIBS) $(THREAD_LIBS) $(OPENSSL_LIBS)
+AM_CFLAGS = -fPIC $(LIBXSLT_CFLAGS) $(OPENSSL_CFLAGS) $(LIBICU_CFLAGS) $(GLIB_CFLAGS)
+AM_LDFLAGS = $(LIBXSLT_LIBS) $(THREAD_LIBS) $(OPENSSL_LIBS) $(LIBICU_LIBS) $(GLIB_LIBS)
 
 lib_LTLIBRARIES = libxsltp.la
 libxsltp_la_SOURCES =                       \
@@ -16,6 +16,7 @@ libxsltp_la_SOURCES =                       \
             xsltp_list.c                    \
             xsltp_log.c                     \
             xsltp_string.c                  \
+            xsltp_extension.c               \
             xsltp_pthread_thread.c
 
 include_HEADERS =                           \

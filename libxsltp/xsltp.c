@@ -379,6 +379,8 @@ xsltp_global_init(void)
     exsltRegisterAll();
 #endif
 
+    xsltp_extension_init();
+
     /*xsltSetGenericDebugFunc(stderr, NULL);*/
     /*xsltRegisterTestModule();*/
     /*xsltDebugDumpExtensions(NULL);*/

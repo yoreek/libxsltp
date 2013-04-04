@@ -2,6 +2,9 @@
 #define _XSLTP_H_INCLUDED_
 
 #include <libxml/parser.h>
+#include <libxml/tree.h>
+#include <libxml/xpath.h>
+#include <libxml/xpathInternals.h>
 #include <libxml/xmlsave.h>
 #include <libxslt/xslt.h>
 #include <libxslt/transform.h>
@@ -13,10 +16,19 @@
 #ifdef HAVE_LIBEXSLT
 #include <libexslt/exslt.h>
 #endif
+#ifdef HAVE_GLIB
+#include <glib.h>
+#endif
 
 #define XSLTP_PROCESSOR_ID              (0x7755)
 #define XSLTP_MAX_TRANSFORMATIONS        16
 #define XSLTP_MAX_TRANSFORMATIONS_PARAMS 254
+#define XSLTP_EXTENSION_COMMON_NS        "http://xsltproc.org/xslt/common"
+#define XSLTP_EXTENSION_STRING_NS        "http://xsltproc.org/xslt/string"
+
+#ifdef HAVE_ICU
+typedef UChar32 (*xsltp_extension_case_convert_func_t) (UChar32 c);
+#endif
 
 typedef struct xsltp_transform_ctxt xsltp_transform_ctxt_t;
 struct xsltp_transform_ctxt {
@@ -188,6 +200,8 @@ xsltp_document_parser_cache_t *xsltp_document_parser_cache_create(void);
 void xsltp_document_parser_cache_destroy(xsltp_document_parser_cache_t *cache);
 xsltp_document_t *xsltp_document_parser_cache_lookup(xsltp_document_parser_cache_t *cache, char *uri);
 void xsltp_document_parser_cache_clean(xsltp_document_parser_cache_t *cache, xsltp_keys_cache_t *keys_cache);
+
+int xsltp_extension_init(void);
 
 #define XSLT_KEYS_LIST_FREE_NONE 0
 #define XSLT_KEYS_LIST_FREE_DATA 1

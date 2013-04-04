@@ -100,7 +100,7 @@ am_libxsltp_la_OBJECTS = xsltp.lo xsltp_result.lo \
 	xsltp_document_parser.lo xsltp_document_parser_cache.lo \
 	xsltp_stylesheet_parser.lo xsltp_stylesheet_parser_cache.lo \
 	xsltp_keys_cache.lo xsltp_profiler.lo xsltp_core.lo \
-	xsltp_list.lo xsltp_log.lo xsltp_string.lo \
+	xsltp_list.lo xsltp_log.lo xsltp_string.lo xsltp_extension.lo \
 	xsltp_pthread_thread.lo
 libxsltp_la_OBJECTS = $(am_libxsltp_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -151,6 +151,8 @@ ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
+GLIB_CFLAGS = @GLIB_CFLAGS@
+GLIB_LIBS = @GLIB_LIBS@
 GREP = @GREP@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -188,6 +190,9 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PKG_CONFIG = @PKG_CONFIG@
+PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
+PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
@@ -251,8 +256,8 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)
-AM_CFLAGS = -fPIC $(LIBXSLT_CFLAGS) $(OPENSSL_CFLAGS)
-AM_LDFLAGS = $(LIBXSLT_LIBS) $(THREAD_LIBS) $(OPENSSL_LIBS)
+AM_CFLAGS = -fPIC $(LIBXSLT_CFLAGS) $(OPENSSL_CFLAGS) $(LIBICU_CFLAGS) $(GLIB_CFLAGS)
+AM_LDFLAGS = $(LIBXSLT_LIBS) $(THREAD_LIBS) $(OPENSSL_LIBS) $(LIBICU_LIBS) $(GLIB_LIBS)
 lib_LTLIBRARIES = libxsltp.la
 libxsltp_la_SOURCES = \
             xsltp.c                         \
@@ -267,6 +272,7 @@ libxsltp_la_SOURCES = \
             xsltp_list.c                    \
             xsltp_log.c                     \
             xsltp_string.c                  \
+            xsltp_extension.c               \
             xsltp_pthread_thread.c
 
 include_HEADERS = \
@@ -359,6 +365,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_core.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_document_parser.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_document_parser_cache.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_extension.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_keys_cache.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_list.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsltp_log.Plo@am__quote@
