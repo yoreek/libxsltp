@@ -63,13 +63,12 @@ xsltp_document_parser_cache_create(void)
 static void
 xsltp_document_parser_cache_free(xsltp_list_t *list)
 {
-    xsltp_list_t *el;
-    for (
-        el = xsltp_list_first(list);
-        el != xsltp_list_end(list);
-        el = xsltp_list_next(el)
-    ) {
+    xsltp_list_t *el, *next_el;
+    el = xsltp_list_first(list);
+    while (el != xsltp_list_end(list)) {
+        next_el = xsltp_list_next(el);
         xsltp_document_parser_destroy_document((xsltp_document_t *) el);
+        el = next_el;
     }
 }
 
