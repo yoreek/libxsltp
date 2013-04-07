@@ -128,7 +128,10 @@ xsltp_apply_stylesheet(xsltp_t *processor, xsltp_stylesheet_t *xsltp_stylesheet,
     xmlDocPtr               result_doc;
 
     ctxt = xsltNewTransformContext(xsltp_stylesheet->stylesheet, doc);
-    ctxt->_private         = processor;
+    if (ctxt == NULL) {
+        return NULL;
+    }
+    ctxt->_private = processor;
 
 #ifdef USE_LIBEXSLT_GLOBAL_MAX_DEPTH
     xsltMaxDepth = processor->stylesheet_max_depth;
@@ -371,6 +374,8 @@ xsltp_global_init(void)
 #endif
         return;
     }
+
+    xsltp_log_init(NULL, NULL);
 
     xmlInitParser();
     xmlInitThreads();

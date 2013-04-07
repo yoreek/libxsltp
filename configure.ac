@@ -1,5 +1,5 @@
 AC_PREREQ([2.59])
-AC_INIT([XSLT processing library], [0.02], [yoreek@yahoo.com],
+AC_INIT([XSLT processing library], [0.03], [yoreek@yahoo.com],
         [libxsltp], [https://github.com/yoreek/libxsltp/])
 AM_INIT_AUTOMAKE([1.10 -Wall no-define])
 AC_CONFIG_HEADERS([config.h])
