@@ -1,3 +1,6 @@
+v0.04   2013-04-14
+        Fix bug with MUTABLE_SV definition
+
 v0.03   2013-04-08
         Improve error logging.
         Fix memory free bug.
